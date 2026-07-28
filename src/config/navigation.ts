@@ -1,0 +1,21 @@
+import { routes } from "./routes";
+
+export interface NavItem {
+  label: string;
+  href: string;
+  icon?: string;
+  requiresAuth?: boolean;
+  badge?: string;
+}
+
+export const mainNavigation: NavItem[] = [
+  { label: "Dashboard", href: routes.dashboard, icon: "LayoutDashboard", requiresAuth: true },
+  { label: "Cases", href: routes.cases.index, icon: "FolderSearch", requiresAuth: true },
+  { label: "Profile", href: routes.profile, icon: "User", requiresAuth: true },
+  { label: "Settings", href: routes.settings, icon: "Settings", requiresAuth: true },
+] as const;
+
+export const authNavigation: NavItem[] = [
+  { label: "Log In", href: routes.login },
+  { label: "Sign Up", href: routes.signup },
+] as const;
