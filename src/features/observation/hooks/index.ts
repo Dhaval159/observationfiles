@@ -1,206 +1,270 @@
-import { create } from "zustand";
-import { useEffect, useMemo, useState, useRef } from "react";
-import type { EventEmitter } from "@/types/engine";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import type {
-  ObservationDefinition,
-  ObservationState,
+  ObservationEntry,
+  ObservationObjectDefinition,
+  ObservationGroupDefinition,
   ObservationSearchCriteria,
-} from "@/types/observation";
-import { ObservationEngine } from "../services";
-import type { ObservationEngineState, ObservationFilterResult } from "../types";
-
-interface EngineStore {
-  engine: ObservationEngine | null;
-  state: ObservationEngineState | null;
-  version: number;
-  bump: () => void;
-  setEngine: (engine: ObservationEngine) => void;
-  refreshState: (state: ObservationEngineState) => void;
-}
-
-const useObservationEngineStore = create<EngineStore>((set) => ({
-  engine: null,
-  state: null,
-  version: 0,
-  bump: () => set((s) => ({ version: s.version + 1 })),
-  setEngine: (engine: ObservationEngine) => set({ engine, state: engine.getState() }),
-  refreshState: (state: ObservationEngineState) => set((s) => ({ state, version: s.version + 1 })),
-}));
+  ObservationFilterCriteria,
+  ObservationSortOption,
+  ObservationLifecycleState,
+} from "@/domain/engines/observation/types";
+import { ObservationEngine } from "@/domain/engines/observation/observation-engine";
+import { useEngineObservationStore } from "@/stores/engine-observation-store";
 
 let engineInstance: ObservationEngine | null = null;
-let emitterInstance: EventEmitter | null = null;
-
-function createEventEmitter(): EventEmitter {
-  const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
-
-  return {
-    on(event: string, handler: (...args: unknown[]) => void): () => void {
-      if (!listeners.has(event)) listeners.set(event, new Set());
-      const handlers = listeners.get(event);
-      if (handlers) handlers.add(handler);
-      return () => {
-        const h = listeners.get(event);
-        if (h) h.delete(handler);
-      };
-    },
-    off(event: string, handler: (...args: unknown[]) => void): void {
-      const handlers = listeners.get(event);
-      if (handlers) handlers.delete(handler);
-    },
-    emit(event: string, ...args: unknown[]): void {
-      const handlers = listeners.get(event);
-      if (handlers) {
-        for (const handler of handlers) {
-          handler(...args);
-        }
-      }
-    },
-    once(event: string, handler: (...args: unknown[]) => void): void {
-      const wrapper = (...args: unknown[]) => {
-        handler(...args);
-        const handlers = listeners.get(event);
-        if (handlers) handlers.delete(wrapper);
-      };
-      const handlers = listeners.get(event);
-      if (!handlers) {
-        listeners.set(event, new Set([wrapper]));
-      } else {
-        handlers.add(wrapper);
-      }
-    },
-    listenerCount(event: string): number {
-      const handlers = listeners.get(event);
-      return handlers?.size ?? 0;
-    },
-  };
-}
 
 function ensureEngine(): ObservationEngine {
   if (!engineInstance) {
-    emitterInstance = createEventEmitter();
-    engineInstance = new ObservationEngine(emitterInstance);
-
-    const refresh = () => {
-      if (engineInstance) {
-        useObservationEngineStore.getState().refreshState(engineInstance.getState());
-      }
-    };
-
-    emitterInstance.on("observation_discovered", refresh);
-    emitterInstance.on("observation_analyzed", refresh);
-
-    useObservationEngineStore.getState().setEngine(engineInstance);
+    engineInstance = new ObservationEngine();
   }
   return engineInstance;
 }
 
 export function useObservationEngine(): ObservationEngine {
-  const { engine } = useObservationEngineStore();
   const engineRef = useRef<ObservationEngine | null>(null);
 
   if (!engineRef.current) {
-    engineRef.current = engine ?? ensureEngine();
+    engineRef.current = ensureEngine();
   }
-
-  useEffect(() => {
-    const current = ensureEngine();
-    useObservationEngineStore.getState().setEngine(current);
-    engineRef.current = current;
-  }, []);
 
   return engineRef.current;
 }
 
-export function useObservationsAtLocation(locationId: string): {
-  objects: Array<{
-    objectId: string;
-    name: string;
-    observationIds: string[];
-    observations: ObservationDefinition[];
-    states: (ObservationState | null)[];
-  }>;
+export function useObservation(
+  caseId: string,
+  observationId: string,
+  playerId: string,
+): {
+  entry: ObservationEntry | null;
+  isLoading: boolean;
+  error: string | null;
 } {
   const engine = useObservationEngine();
-  const { version } = useObservationEngineStore();
+  const [entry, setEntry] = useState<ObservationEntry | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  return useMemo(() => {
-    const objects = engine.getObjectsAtLocation(locationId);
+  useEffect(() => {
+    const result = engine.getEntry(caseId, observationId, playerId);
+    if (result.success) {
+      setEntry(result.data);
+      setError(null);
+    } else {
+      setEntry(null);
+      setError(result.error.message);
+    }
+  }, [engine, caseId, observationId, playerId]);
 
-    return {
-      objects: objects.map((obj) => {
-        const observations = engine.getObservationsForObject(obj.id);
-        const states = observations.map((obs) => engine.getObservationState(obs.id));
-
-        return {
-          objectId: obj.id,
-          name: obj.name,
-          observationIds: obj.observationIds,
-          observations,
-          states,
-        };
-      }),
-    };
-  }, [engine, locationId, version]);
+  return { entry, isLoading: false, error };
 }
 
-export function useObservation(observationId: string): {
-  definition: ObservationDefinition | null;
-  state: ObservationState | null;
+export function useObservations(
+  caseId: string,
+  playerId: string,
+  options?: {
+    state?: ObservationLifecycleState;
+    category?: string;
+    location?: string;
+    group?: string;
+    tags?: string[];
+  },
+): {
+  entries: ObservationEntry[];
+  isLoading: boolean;
+  count: number;
 } {
   const engine = useObservationEngine();
-  const { version } = useObservationEngineStore();
 
   return useMemo(() => {
-    const definition = engine.getState().observations.get(observationId) ?? null;
-    const state = engine.getObservationState(observationId);
+    let entries = engine.getAll(caseId, playerId);
 
-    return { definition, state };
-  }, [engine, observationId, version]);
+    if (options?.state) {
+      entries = engine.getByState(caseId, options.state, playerId);
+    }
+    if (options?.category) {
+      entries = entries.filter((e) => e.definition.category === options.category);
+    }
+    if (options?.location) {
+      entries = entries.filter((e) => e.definition.locationId === options.location);
+    }
+    if (options?.group) {
+      entries = engine.getByGroup(caseId, options.group, playerId);
+    }
+    if (options?.tags && options.tags.length > 0) {
+      entries = entries.filter((e) =>
+        options.tags!.some((t) => e.definition.tags.includes(t)),
+      );
+    }
+
+    return { entries, isLoading: false, count: entries.length };
+  }, [engine, caseId, playerId, JSON.stringify(options)]);
 }
 
-export function useObservationSearch(criteria: ObservationSearchCriteria): ObservationFilterResult {
+export function useObservationGroups(
+  caseId: string,
+  playerId: string,
+): {
+  groups: ObservationGroupDefinition[];
+  isLoading: boolean;
+} {
+  const engine = useObservationEngine();
+
+  return useMemo(() => {
+    const groups = engine.manager.groupManager.getAllGroups();
+    return { groups, isLoading: false };
+  }, [engine, caseId, playerId]);
+}
+
+export function useObservationSearch(
+  caseId: string,
+  playerId: string,
+  criteria: ObservationSearchCriteria,
+): {
+  results: ObservationEntry[];
+  isLoading: boolean;
+  total: number;
+} {
   const engine = useObservationEngine();
   const criteriaKey = JSON.stringify(criteria);
-  const [result, setResult] = useState<ObservationFilterResult>({
-    observations: [],
-    total: 0,
-    filtered: 0,
-  });
+  const [results, setResults] = useState<ObservationEntry[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setResult(engine.search(criteria));
-    }, 300);
+      const searchResults = engine.search(caseId, criteria, playerId);
+      setResults(searchResults);
+    }, 150);
 
     return () => clearTimeout(timer);
-  }, [engine, criteriaKey]);
+  }, [engine, caseId, playerId, criteriaKey]);
 
-  return result;
+  return {
+    results,
+    isLoading: false,
+    total: results.length,
+  };
 }
 
-export function useObservationProgress(): {
-  discovered: number;
-  total: number;
-  percentage: number;
-  analyzed: number;
-  analyzedPercentage: number;
+export function useObservationFilters(
+  caseId: string,
+  playerId: string,
+  criteria: ObservationFilterCriteria,
+): {
+  results: ObservationEntry[];
+  isLoading: boolean;
+  count: number;
 } {
   const engine = useObservationEngine();
-  const { version } = useObservationEngineStore();
+  const criteriaKey = JSON.stringify(criteria);
 
   return useMemo(() => {
-    return engine.getDiscoveryProgress();
-  }, [engine, version]);
+    const filtered = engine.filter(caseId, criteria, playerId);
+    return { results: filtered, isLoading: false, count: filtered.length };
+  }, [engine, caseId, playerId, criteriaKey]);
 }
 
-export function useDiscoverableObservations(
-  context: Record<string, unknown>,
-): ObservationDefinition[] {
+export function useObservationState(): {
+  currentObservationId: string | null;
+  selectedObjectId: string | null;
+  searchQuery: string;
+  activeFilters: Record<string, unknown>;
+  sortField: string | null;
+  sortDirection: "asc" | "desc";
+  lifecycleState: ObservationLifecycleState;
+  setCurrentObservationId: (id: string | null) => void;
+  setSelectedObjectId: (id: string | null) => void;
+  setSearchQuery: (query: string) => void;
+  setSortField: (field: string | null) => void;
+  setSortDirection: (direction: "asc" | "desc") => void;
+  addFilter: (key: string, value: unknown) => void;
+  removeFilter: (key: string) => void;
+  clearFilters: () => void;
+} {
+  const store = useEngineObservationStore();
+
+  return {
+    currentObservationId: store.currentObservationId,
+    selectedObjectId: store.selectedObjectId,
+    searchQuery: store.searchQuery,
+    activeFilters: store.activeFilters,
+    sortField: store.sortField,
+    sortDirection: store.sortDirection,
+    lifecycleState: store.lifecycleState,
+    setCurrentObservationId: store.setCurrentObservationId,
+    setSelectedObjectId: store.setSelectedObjectId,
+    setSearchQuery: store.setSearchQuery,
+    setSortField: store.setSortField,
+    setSortDirection: store.setSortDirection,
+    addFilter: store.addFilter,
+    removeFilter: store.removeFilter,
+    clearFilters: store.clearFilters,
+  };
+}
+
+export function useObserve(
+  caseId: string,
+  playerId: string,
+): {
+  observe: (observationId: string, locationId: string) => void;
+  isObserving: boolean;
+  lastObservation: ObservationEntry | null;
+  error: string | null;
+} {
   const engine = useObservationEngine();
-  const contextKey = JSON.stringify(context);
-  const { version } = useObservationEngineStore();
+  const [isObserving, setIsObserving] = useState(false);
+  const [lastObservation, setLastObservation] = useState<ObservationEntry | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const observe = useCallback(
+    (observationId: string, locationId: string) => {
+      setIsObserving(true);
+      setError(null);
+
+      try {
+        const result = engine.observe(caseId, observationId, locationId, playerId);
+        if (result.success) {
+          setLastObservation(result.data);
+        } else {
+          setError(result.error.message);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+      } finally {
+        setIsObserving(false);
+      }
+    },
+    [engine, caseId, playerId],
+  );
+
+  return { observe, isObserving, lastObservation, error };
+}
+
+export function useObservationProgress(
+  caseId: string,
+  playerId: string,
+): {
+  total: number;
+  observed: number;
+  verified: number;
+  hidden: number;
+  available: number;
+  percentage: number;
+} {
+  const engine = useObservationEngine();
 
   return useMemo(() => {
-    return engine.getDiscoverableObservations(context);
-  }, [engine, contextKey, version]);
+    const all = engine.getAll(caseId, playerId);
+    const total = all.length;
+    const observed = all.filter((e) => e.lifecycleState === "observed" || e.lifecycleState === "verified").length;
+    const verified = all.filter((e) => e.lifecycleState === "verified").length;
+    const hidden = all.filter((e) => e.lifecycleState === "hidden").length;
+    const available = all.filter((e) => e.lifecycleState === "available" || e.lifecycleState === "inspecting").length;
+
+    return {
+      total,
+      observed,
+      verified,
+      hidden,
+      available,
+      percentage: total > 0 ? Math.round((observed / total) * 100) : 0,
+    };
+  }, [engine, caseId, playerId]);
 }
