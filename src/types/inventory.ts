@@ -19,3 +19,19 @@ export interface InventoryItem {
 }
 
 export type InventoryCategory = "evidence" | "tool" | "document" | "key-item" | "consumable";
+
+export interface InventoryState {
+  slots: InventorySlot[];
+  capacity: number;
+  filters: InventoryFilter;
+  sortBy: "name" | "category" | "collected" | "analyzed";
+  searchQuery: string;
+}
+
+export interface InventoryFilter {
+  category: InventoryCategory | null;
+  type: string | null;
+  collected: boolean | null;
+  analyzed: boolean | null;
+  keyEvidence: boolean | null;
+}

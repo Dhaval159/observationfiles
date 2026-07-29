@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
 
-const protectedRoutes = ["/dashboard", "/cases", "/profile", "/settings"];
+const protectedRoutes = ["/dashboard", "/cases", "/profile", "/settings", "/achievements"];
 const authRoutes = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
@@ -54,7 +54,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
