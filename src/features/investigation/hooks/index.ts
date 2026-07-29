@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { EventEmitter } from "@/types/engine";
 import type {
   InvestigationState,
@@ -39,17 +39,8 @@ function createEventEmitter(): EventEmitter {
 }
 
 export function useInvestigationEngine(): InvestigationEngine {
-  const emitterRef = useRef<EventEmitter | null>(null);
-  const engineRef = useRef<InvestigationEngine | null>(null);
-
-  if (!emitterRef.current) {
-    emitterRef.current = createEventEmitter();
-  }
-  if (!engineRef.current) {
-    engineRef.current = new InvestigationEngine(emitterRef.current);
-  }
-
-  return engineRef.current;
+  const [engine] = useState(() => new InvestigationEngine(createEventEmitter()));
+  return engine;
 }
 
 export function useInvestigation(caseId: string): {
@@ -221,4 +212,8 @@ export { useInvestigation as useDomainInvestigation } from "./use-investigation"
 export { useDiscoveries } from "./use-discoveries";
 export { useCurrentLocation } from "./use-current-location";
 export { useInvestigationProgress as useDomainInvestigationProgress } from "./use-investigation-progress";
-export { useInvestigationHistory, useInvestigationLog, useNotifications } from "./use-investigation-history";
+export {
+  useInvestigationHistory,
+  useInvestigationLog,
+  useNotifications,
+} from "./use-investigation-history";

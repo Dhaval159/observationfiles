@@ -1,5 +1,4 @@
 import type { ObservationConfidenceRecord, ConfidenceSnapshot, ObservationContext } from "../types";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
 import { now } from "@/domain/value-objects/timestamp";
 
 export type ConfidenceCategory = "very_low" | "low" | "medium" | "high" | "very_high" | "certain";
@@ -84,10 +83,7 @@ export class ConfidenceManager {
 
     const existing = this._records.get(observationId);
     const history = existing
-      ? [
-          ...existing.history,
-          { value: clamped, source, timestamp, reason },
-        ]
+      ? [...existing.history, { value: clamped, source, timestamp, reason }]
       : [{ value: clamped, source, timestamp, reason }];
 
     const record: ObservationConfidenceRecord = {

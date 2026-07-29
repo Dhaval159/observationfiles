@@ -1,6 +1,6 @@
 import type { BaseRepository, QueryOptions, PaginatedResult } from "./base-repository";
 import type { Result } from "../results/result";
-import type { Case, FullCase, CaseDefinition } from "../../types/case";
+import type { FullCase, CaseDefinition } from "../../types/case";
 import type { CaseDifficulty, CaseStatus } from "../enums";
 
 export interface CaseRepository extends BaseRepository<FullCase> {

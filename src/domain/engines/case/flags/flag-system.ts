@@ -1,5 +1,5 @@
 import type { FlagValue, FlagChangeEvent, CaseContext } from "../types";
-import { now, type DomainTimestamp } from "@/domain/value-objects/timestamp";
+import { now } from "@/domain/value-objects/timestamp";
 
 export class FlagSystem {
   private _changeHistory: FlagChangeEvent[] = [];

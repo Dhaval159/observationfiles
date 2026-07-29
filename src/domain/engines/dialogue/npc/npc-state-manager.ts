@@ -1,5 +1,4 @@
 import type { NPCStateDefinition, NPCStateSnapshot } from "../types";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
 import { now } from "@/domain/value-objects/timestamp";
 
 export class NPCStateManager {
@@ -135,11 +134,7 @@ export class NPCStateManager {
     return updated;
   }
 
-  setHiddenVariable(
-    npcId: string,
-    key: string,
-    value: unknown,
-  ): NPCStateDefinition | undefined {
+  setHiddenVariable(npcId: string, key: string, value: unknown): NPCStateDefinition | undefined {
     const state = this._states.get(npcId);
     if (!state) return undefined;
 
@@ -151,11 +146,7 @@ export class NPCStateManager {
     return this._states.get(npcId)?.hiddenVariables.get(key);
   }
 
-  setTemporaryVariable(
-    npcId: string,
-    key: string,
-    value: unknown,
-  ): NPCStateDefinition | undefined {
+  setTemporaryVariable(npcId: string, key: string, value: unknown): NPCStateDefinition | undefined {
     const state = this._states.get(npcId);
     if (!state) return undefined;
 

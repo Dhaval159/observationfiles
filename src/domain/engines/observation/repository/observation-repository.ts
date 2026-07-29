@@ -5,7 +5,6 @@ import { success, failure } from "@/domain/results/result";
 import { ObservationNotFoundError } from "@/domain/errors/domain-error";
 import { now } from "@/domain/value-objects/timestamp";
 import { ObservationCache } from "../cache/observation-cache";
-import { generateUuid } from "@/domain/utils/id-generator";
 
 export interface ObservationPersistenceAdapter {
   save(ctx: ObservationContext): Promise<Result<void>>;
@@ -65,9 +64,7 @@ export class InMemoryObservationRepository {
   ): Result<ObservationObjectDefinition> {
     const def = ctx.definitions.get(observationId);
     if (!def) {
-      return failure(
-        new ObservationNotFoundError(`Definition for '${observationId}' not found`),
-      );
+      return failure(new ObservationNotFoundError(`Definition for '${observationId}' not found`));
     }
     return success(def);
   }

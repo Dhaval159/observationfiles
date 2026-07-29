@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import { ScoringEngine } from "../services";
 import type { ScoreBreakdown, ScoringConfig } from "@/types/scoring";
 import type { EventEmitter } from "@/types/engine";
@@ -11,18 +11,12 @@ const noopEmitter: EventEmitter = {
   listenerCount: () => 0,
 };
 
-let engineInstance: ScoringEngine | null = null;
-
 export function useScoringEngine(
   emitter: EventEmitter = noopEmitter,
   config?: ScoringConfig,
 ): ScoringEngine {
-  return useMemo(() => {
-    if (!engineInstance) {
-      engineInstance = new ScoringEngine(emitter, config);
-    }
-    return engineInstance;
-  }, [emitter, config]);
+  const [engine] = useState(() => new ScoringEngine(emitter, config));
+  return engine;
 }
 
 export function useScoreBreakdown(): ScoreBreakdown {

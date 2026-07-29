@@ -16,3 +16,4 @@ export * from "./scoring";
 export * from "./settings";
 export * from "./theory-board";
 export * from "./timeline";
+export * from "./workspace";

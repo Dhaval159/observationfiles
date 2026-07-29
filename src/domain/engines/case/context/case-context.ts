@@ -1,9 +1,9 @@
-import type { CaseContext, CaseSession, DependencyGraph, VariableValue } from "../types";
+import type { CaseContext, CaseSession, VariableValue } from "../types";
 import type { FullCase, CaseDefinition } from "@/types/case";
 import type { Objective } from "@/domain/models/objective";
 import type { CaseProgress } from "@/domain/repositories/progress-repository";
 import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
-import { createDomainTimestamp, now } from "@/domain/value-objects/timestamp";
+import { now } from "@/domain/value-objects/timestamp";
 import { generateUuid } from "@/domain/utils/id-generator";
 
 export function createCaseContext(

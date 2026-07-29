@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { useAuthStore } from "@/stores/auth-store";
+import { isSupabaseConfigured } from "@/config/environment";
 import type { User } from "@/types/user";
 
 interface SupabaseContextValue {
@@ -14,13 +15,21 @@ interface SupabaseContextValue {
 const SupabaseContext = createContext<SupabaseContextValue | null>(null);
 
 export function SupabaseProvider({ children }: { children: ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const supabase = getSupabase();
+  const [isLoading, setIsLoading] = useState(() => {
+    if (!isSupabaseConfigured() || !supabase) return false;
+    return true;
+  });
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const setStatus = useAuthStore((s) => s.setStatus);
-  const supabase = getSupabase();
 
   useEffect(() => {
+    if (!isSupabaseConfigured() || !supabase) {
+      setStatus("unauthenticated");
+      return;
+    }
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user as unknown as User);

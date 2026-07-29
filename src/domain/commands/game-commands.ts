@@ -1,11 +1,6 @@
 import type { Command } from "./base-command";
 import type { DomainTimestamp } from "../value-objects/timestamp";
-import type {
-  CaseDifficulty,
-  EvidenceType,
-  NodeType,
-  TheoryConnectionType,
-} from "../enums";
+import type { CaseDifficulty, NodeType, TheoryConnectionType } from "../enums";
 
 export interface LoadCaseCommand extends Command {
   readonly type: "LOAD_CASE";

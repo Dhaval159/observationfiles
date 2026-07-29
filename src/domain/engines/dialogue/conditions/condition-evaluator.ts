@@ -1,8 +1,4 @@
-import type {
-  DialogueConditionDefinition,
-  DialogueContext,
-  NPCStateDefinition,
-} from "../types";
+import type { DialogueConditionDefinition, DialogueContext, NPCStateDefinition } from "../types";
 
 export interface DialogueConditionContext {
   collectedEvidence: string[];
@@ -23,7 +19,7 @@ export interface DialogueConditionContext {
 
 export function buildConditionContext(
   ctx: DialogueContext,
-  npcState?: NPCStateDefinition,
+  _npcState?: NPCStateDefinition,
 ): DialogueConditionContext {
   const conversation = ctx.currentConversationId
     ? ctx.conversations.get(ctx.currentConversationId)
@@ -89,9 +85,7 @@ export function evaluateSingleCondition(
     case "objective_completed":
       return evaluateContains(context.completedObjectives, condition);
     case "contradiction_found":
-      return condition.operator === "exists"
-        ? context[condition.type] !== undefined
-        : false;
+      return condition.operator === "exists" ? context[condition.type] !== undefined : false;
     case "time_elapsed":
       return evaluateNumericComparison(context.elapsedTimeMs, condition);
     case "visit_count":
@@ -110,9 +104,7 @@ export function evaluateConditions(
 ): boolean {
   if (conditions.length === 0) return true;
 
-  return conditions.every((c) =>
-    evaluateSingleCondition(c, context, npcState),
-  );
+  return conditions.every((c) => evaluateSingleCondition(c, context, npcState));
 }
 
 function evaluateNumericComparison(
@@ -157,7 +149,10 @@ function evaluateStringComparison(
     case "not_equals":
       return value !== condition.value;
     case "contains":
-      return typeof condition.value === "string" && value.toLowerCase().includes(condition.value.toLowerCase());
+      return (
+        typeof condition.value === "string" &&
+        value.toLowerCase().includes(condition.value.toLowerCase())
+      );
     case "in":
       return Array.isArray(condition.value) && condition.value.includes(value);
     case "not_in":
@@ -171,10 +166,7 @@ function evaluateStringComparison(
   }
 }
 
-function evaluateContains(
-  array: string[],
-  condition: DialogueConditionDefinition,
-): boolean {
+function evaluateContains(array: string[], condition: DialogueConditionDefinition): boolean {
   switch (condition.operator) {
     case "contains":
       return Array.isArray(condition.targetId)
@@ -193,7 +185,7 @@ function evaluateFromMap(
   map: Map<string, unknown> | Record<string, unknown>,
   condition: DialogueConditionDefinition,
 ): boolean {
-  const getVal = (m: Map<string, unknown> | Record<string, unknown>, key: string): unknown => {
+  const getVal = (m: Map<string, unknown> | Record<string, unknown>, _key: string): unknown => {
     if (m instanceof Map) return m.get(condition.targetId);
     return (m as Record<string, unknown>)[condition.targetId];
   };
@@ -206,9 +198,13 @@ function evaluateFromMap(
     case "not_equals":
       return value !== condition.value;
     case "greater_than":
-      return typeof value === "number" && typeof condition.value === "number" && value > condition.value;
+      return (
+        typeof value === "number" && typeof condition.value === "number" && value > condition.value
+      );
     case "less_than":
-      return typeof value === "number" && typeof condition.value === "number" && value < condition.value;
+      return (
+        typeof value === "number" && typeof condition.value === "number" && value < condition.value
+      );
     case "exists":
       return value !== undefined && value !== null;
     case "not_exists":

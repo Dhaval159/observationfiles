@@ -160,12 +160,12 @@ All external service interactions go through `src/services/`, not directly from 
 
 ## Environment Variables
 
-Copy `.env.example` to `.env` and fill in the values:
+Copy `.env.example` to `.env`:
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Supabase anonymous key |
+| `NEXT_PUBLIC_SUPABASE_URL` | No | Supabase project URL (leave blank for offline/demo mode) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | No | Supabase anonymous key (leave blank for offline/demo mode) |
 | `NEXT_PUBLIC_APP_URL` | No | Application URL |
 | `NEXT_PUBLIC_POSTHOG_KEY` | No | PostHog analytics key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | No | PostHog host URL |

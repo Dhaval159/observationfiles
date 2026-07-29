@@ -24,7 +24,10 @@ export function useCaseMetadata(caseId: string | null) {
   }, [caseId]);
 
   useEffect(() => {
-    loadMetadata();
+    const timer = setTimeout(() => {
+      loadMetadata();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [caseId, loadMetadata]);
 
   return {

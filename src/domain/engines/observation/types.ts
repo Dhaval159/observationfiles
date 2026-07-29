@@ -1,5 +1,4 @@
 import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
-import type { Confidence } from "@/domain/value-objects/confidence";
 import type { DomainDifficulty } from "@/domain/value-objects/difficulty";
 import type { Priority } from "@/domain/value-objects/priority";
 import type { Requirement, RequirementSet } from "@/domain/models/unlock-condition";
@@ -33,7 +32,8 @@ export interface ObservationRequirementDefinition {
 export interface ObservationDependencyDefinition {
   readonly id: string;
   readonly dependsOnId: string;
-  readonly dependencyType: "requires" | "enhances" | "contradicts" | "supersedes" | "precedes" | "follows";
+  readonly dependencyType:
+    "requires" | "enhances" | "contradicts" | "supersedes" | "precedes" | "follows";
   readonly description: string;
   readonly isBidirectional: boolean;
   readonly isMandatory: boolean;

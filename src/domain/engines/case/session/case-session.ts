@@ -1,6 +1,6 @@
 import type { CaseSession } from "../types";
 import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
-import { createDomainTimestamp, now } from "@/domain/value-objects/timestamp";
+import { now } from "@/domain/value-objects/timestamp";
 import { generateUuid } from "@/domain/utils/id-generator";
 
 export function createSession(
@@ -44,7 +44,8 @@ export function updatePlayTime(session: CaseSession): void {
     return;
   }
   const nowTime = now();
-  session.playTimeSeconds = nowTime.differenceInSeconds(session.startedAt) - session.totalPausedTimeSeconds;
+  session.playTimeSeconds =
+    nowTime.differenceInSeconds(session.startedAt) - session.totalPausedTimeSeconds;
 }
 
 export function pauseSession(session: CaseSession): void {

@@ -89,7 +89,10 @@ export function useCurrentCase(caseId: string | null, playerId: string | null) {
 
   useEffect(() => {
     if (caseId && playerId) {
-      loadCase();
+      const timer = setTimeout(() => {
+        loadCase();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [caseId, playerId, loadCase]);
 

@@ -1,10 +1,9 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import { AchievementEngine } from "../services";
 import type {
   AchievementDefinition,
   AchievementState,
   AchievementStats,
-  AchievementCategory,
 } from "@/types/achievement";
 import type { EventEmitter } from "@/types/engine";
 
@@ -16,15 +15,9 @@ const noopEmitter: EventEmitter = {
   listenerCount: () => 0,
 };
 
-let engineInstance: AchievementEngine | null = null;
-
 export function useAchievementEngine(emitter: EventEmitter = noopEmitter): AchievementEngine {
-  return useMemo(() => {
-    if (!engineInstance) {
-      engineInstance = new AchievementEngine(emitter);
-    }
-    return engineInstance;
-  }, [emitter]);
+  const [engine] = useState(() => new AchievementEngine(emitter));
+  return engine;
 }
 
 export function useAchievements(): AchievementDefinition[] {

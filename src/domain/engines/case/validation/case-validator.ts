@@ -1,7 +1,11 @@
 import type { CaseValidationResult } from "../types";
-import type { FullCase, CaseDefinition, CaseUnlockCondition } from "@/types/case";
+import type { CaseDefinition, CaseUnlockCondition } from "@/types/case";
 import type { ValidationError, ValidationWarning } from "@/domain/models/validation-result";
-import { createValidationResult, createValidationError, createValidationWarning } from "@/domain/models/validation-result";
+import {
+  createValidationResult,
+  createValidationError,
+  createValidationWarning,
+} from "@/domain/models/validation-result";
 
 interface ValidatableChapter {
   id: string;
@@ -61,23 +65,53 @@ export class CaseValidator {
     }
 
     if (!definition.title || definition.title.trim().length === 0) {
-      errors.push(createValidationError("MISSING_TITLE", "Case must have a title", "title", "title"));
+      errors.push(
+        createValidationError("MISSING_TITLE", "Case must have a title", "title", "title"),
+      );
     }
 
     if (definition.title && definition.title.trim().length > 200) {
-      warnings.push(createValidationWarning("LONG_TITLE", "Case title exceeds 200 characters", "title", "title"));
+      warnings.push(
+        createValidationWarning(
+          "LONG_TITLE",
+          "Case title exceeds 200 characters",
+          "title",
+          "title",
+        ),
+      );
     }
 
     if (!definition.description || definition.description.trim().length === 0) {
-      warnings.push(createValidationWarning("MISSING_DESCRIPTION", "Case has no description", "description", "description"));
+      warnings.push(
+        createValidationWarning(
+          "MISSING_DESCRIPTION",
+          "Case has no description",
+          "description",
+          "description",
+        ),
+      );
     }
 
     if (!definition.metadata) {
-      errors.push(createValidationError("MISSING_METADATA", "Case must have metadata", "metadata", "metadata"));
+      errors.push(
+        createValidationError(
+          "MISSING_METADATA",
+          "Case must have metadata",
+          "metadata",
+          "metadata",
+        ),
+      );
     }
 
     if (definition.metadata && !definition.metadata.author) {
-      warnings.push(createValidationWarning("MISSING_AUTHOR", "Case metadata has no author", "metadata.author", "metadata.author"));
+      warnings.push(
+        createValidationWarning(
+          "MISSING_AUTHOR",
+          "Case metadata has no author",
+          "metadata.author",
+          "metadata.author",
+        ),
+      );
     }
   }
 
@@ -90,11 +124,25 @@ export class CaseValidator {
     sections.push("structure");
 
     if (!definition.chapters || definition.chapters.length === 0) {
-      warnings.push(createValidationWarning("NO_CHAPTERS", "Case has no chapters defined", "chapters", "chapters"));
+      warnings.push(
+        createValidationWarning(
+          "NO_CHAPTERS",
+          "Case has no chapters defined",
+          "chapters",
+          "chapters",
+        ),
+      );
     }
 
     if (!definition.objectives || definition.objectives.length === 0) {
-      warnings.push(createValidationWarning("NO_OBJECTIVES", "Case has no objectives", "objectives", "objectives"));
+      warnings.push(
+        createValidationWarning(
+          "NO_OBJECTIVES",
+          "Case has no objectives",
+          "objectives",
+          "objectives",
+        ),
+      );
     }
 
     if (definition.chapters) {
@@ -104,12 +152,14 @@ export class CaseValidator {
         const chapter = chapters[i];
         if (!chapter) continue;
         if (chapterIds.has(chapter.id)) {
-          errors.push(createValidationError(
-            "DUPLICATE_CHAPTER_ID",
-            `Duplicate chapter id: ${chapter.id}`,
-            "chapters",
-            `chapters[${i}].id`,
-          ));
+          errors.push(
+            createValidationError(
+              "DUPLICATE_CHAPTER_ID",
+              `Duplicate chapter id: ${chapter.id}`,
+              "chapters",
+              `chapters[${i}].id`,
+            ),
+          );
         }
         chapterIds.add(chapter.id);
 
@@ -117,12 +167,14 @@ export class CaseValidator {
           const prevChapter = chapters[i - 1];
           if (prevChapter && prevChapter.order !== undefined && chapter.order !== undefined) {
             if (chapter.order <= prevChapter.order) {
-              warnings.push(createValidationWarning(
-                "CHAPTER_ORDER",
-                `Chapter ${chapter.id} order (${chapter.order}) should be greater than previous chapter order (${prevChapter.order})`,
-                "chapters",
-                `chapters[${i}].order`,
-              ));
+              warnings.push(
+                createValidationWarning(
+                  "CHAPTER_ORDER",
+                  `Chapter ${chapter.id} order (${chapter.order}) should be greater than previous chapter order (${prevChapter.order})`,
+                  "chapters",
+                  `chapters[${i}].order`,
+                ),
+              );
             }
           }
         }
@@ -143,42 +195,50 @@ export class CaseValidator {
       const obj = definition.objectives[i];
       if (!obj) continue;
       if (objIds.has(obj.id)) {
-        errors.push(createValidationError(
-          "DUPLICATE_OBJECTIVE_ID",
-          `Duplicate objective id: ${obj.id}`,
-          "objectives",
-          `objectives[${i}].id`,
-        ));
+        errors.push(
+          createValidationError(
+            "DUPLICATE_OBJECTIVE_ID",
+            `Duplicate objective id: ${obj.id}`,
+            "objectives",
+            `objectives[${i}].id`,
+          ),
+        );
       }
       objIds.add(obj.id);
 
       if (!obj.description || obj.description.trim().length === 0) {
-        warnings.push(createValidationWarning(
-          "OBJECTIVE_NO_DESCRIPTION",
-          `Objective ${obj.id} has no description`,
-          "objectives",
-          `objectives[${i}].description`,
-        ));
+        warnings.push(
+          createValidationWarning(
+            "OBJECTIVE_NO_DESCRIPTION",
+            `Objective ${obj.id} has no description`,
+            "objectives",
+            `objectives[${i}].description`,
+          ),
+        );
       }
 
       if (!obj.completionCondition || Object.keys(obj.completionCondition).length === 0) {
-        warnings.push(createValidationWarning(
-          "OBJECTIVE_NO_COMPLETION",
-          `Objective ${obj.id} has no completion condition`,
-          "objectives",
-          `objectives[${i}].completionCondition`,
-        ));
+        warnings.push(
+          createValidationWarning(
+            "OBJECTIVE_NO_COMPLETION",
+            `Objective ${obj.id} has no completion condition`,
+            "objectives",
+            `objectives[${i}].completionCondition`,
+          ),
+        );
       }
     }
 
     const hasPrimary = definition.objectives.some((o) => o.type === "primary");
     if (!hasPrimary && definition.objectives.length > 0) {
-      warnings.push(createValidationWarning(
-        "NO_PRIMARY_OBJECTIVE",
-        "Case has no primary objective defined",
-        "objectives",
-        "objectives",
-      ));
+      warnings.push(
+        createValidationWarning(
+          "NO_PRIMARY_OBJECTIVE",
+          "Case has no primary objective defined",
+          "objectives",
+          "objectives",
+        ),
+      );
     }
   }
 
@@ -196,12 +256,14 @@ export class CaseValidator {
       const loc = locations[i];
       if (!loc) continue;
       if (locIds.has(loc.id)) {
-        errors.push(createValidationError(
-          "DUPLICATE_LOCATION_ID",
-          `Duplicate location id: ${loc.id}`,
-          "locations",
-          `locations[${i}].id`,
-        ));
+        errors.push(
+          createValidationError(
+            "DUPLICATE_LOCATION_ID",
+            `Duplicate location id: ${loc.id}`,
+            "locations",
+            `locations[${i}].id`,
+          ),
+        );
       }
       locIds.add(loc.id);
     }
@@ -209,12 +271,14 @@ export class CaseValidator {
     for (const location of locations) {
       for (const connectedId of location.connectedLocations) {
         if (!locIds.has(connectedId)) {
-          warnings.push(createValidationWarning(
-            "INVALID_CONNECTION",
-            `Location ${location.id} connects to unknown location ${connectedId}`,
-            "locations",
-            `locations.${location.id}.connectedLocations`,
-          ));
+          warnings.push(
+            createValidationWarning(
+              "INVALID_CONNECTION",
+              `Location ${location.id} connects to unknown location ${connectedId}`,
+              "locations",
+              `locations.${location.id}.connectedLocations`,
+            ),
+          );
         }
       }
     }
@@ -231,12 +295,14 @@ export class CaseValidator {
     if (definition.solution) {
       for (const evidenceId of definition.solution.requiredEvidence) {
         if (!definition.objectives.some((o) => o.completionCondition?.evidenceId === evidenceId)) {
-          warnings.push(createValidationWarning(
-            "UNREFERENCED_EVIDENCE",
-            `Solution references evidence ${evidenceId} not found in objectives`,
-            "solution.requiredEvidence",
-            "solution.requiredEvidence",
-          ));
+          warnings.push(
+            createValidationWarning(
+              "UNREFERENCED_EVIDENCE",
+              `Solution references evidence ${evidenceId} not found in objectives`,
+              "solution.requiredEvidence",
+              "solution.requiredEvidence",
+            ),
+          );
         }
       }
     }
@@ -264,12 +330,14 @@ export class CaseValidator {
       if (location) {
         for (const connectedId of location.connectedLocations) {
           if (hasCycles(connectedId)) {
-            errors.push(createValidationError(
-              "CIRCULAR_REFERENCE",
-              `Circular reference detected involving location ${locId}`,
-              "locations",
-              "locations",
-            ));
+            errors.push(
+              createValidationError(
+                "CIRCULAR_REFERENCE",
+                `Circular reference detected involving location ${locId}`,
+                "locations",
+                "locations",
+              ),
+            );
             return true;
           }
         }
@@ -299,12 +367,14 @@ export class CaseValidator {
     for (const chapter of chapters) {
       if (chapter.unlockCondition) {
         if (chapter.unlockCondition.type === "custom" && !chapter.unlockCondition.config) {
-          warnings.push(createValidationWarning(
-            "MISSING_UNLOCK_CONFIG",
-            `Chapter ${chapter.id} has custom unlock condition without config`,
-            "chapters",
-            `chapters.${chapter.id}.unlockCondition`,
-          ));
+          warnings.push(
+            createValidationWarning(
+              "MISSING_UNLOCK_CONFIG",
+              `Chapter ${chapter.id} has custom unlock condition without config`,
+              "chapters",
+              `chapters.${chapter.id}.unlockCondition`,
+            ),
+          );
         }
       }
     }
@@ -312,12 +382,14 @@ export class CaseValidator {
     for (const location of locations) {
       if (location.unlockCondition) {
         if (location.unlockCondition.type === "custom" && !location.unlockCondition.config) {
-          warnings.push(createValidationWarning(
-            "MISSING_UNLOCK_CONFIG",
-            `Location ${location.id} has custom unlock condition without config`,
-            "locations",
-            `locations.${location.id}.unlockCondition`,
-          ));
+          warnings.push(
+            createValidationWarning(
+              "MISSING_UNLOCK_CONFIG",
+              `Location ${location.id} has custom unlock condition without config`,
+              "locations",
+              `locations.${location.id}.unlockCondition`,
+            ),
+          );
         }
       }
     }

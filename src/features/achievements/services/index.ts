@@ -7,11 +7,7 @@ import type {
   AchievementRarity,
 } from "@/types/achievement";
 import type { AchievementEngineState, AchievementProgressUpdate } from "../types";
-import {
-  evaluateAchievementCondition,
-  calculateAchievementProgress,
-  getAchievementProgressPercentage,
-} from "../utils";
+import { evaluateAchievementCondition, calculateAchievementProgress } from "../utils";
 
 export class AchievementEngine {
   private emitter: EventEmitter;

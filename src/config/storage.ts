@@ -4,6 +4,7 @@ export const storageKeys = {
   settings: "tof-settings",
   progress: "tof-progress",
   onboarding: "tof-onboarding",
+  workspaceLayout: "tof-workspace-layout",
 } as const;
 
 export const storageConfig = {

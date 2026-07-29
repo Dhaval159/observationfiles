@@ -8,6 +8,7 @@ export const routes = {
   cases: {
     index: "/cases",
     detail: (caseId: string) => `/cases/${caseId}` as const,
+    workspace: (caseId: string) => `/cases/${caseId}/workspace` as const,
     investigate: (caseId: string) => `/cases/${caseId}/investigate` as const,
     evidence: (caseId: string) => `/cases/${caseId}/evidence` as const,
     timeline: (caseId: string) => `/cases/${caseId}/timeline` as const,

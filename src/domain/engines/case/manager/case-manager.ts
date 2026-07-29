@@ -3,16 +3,22 @@ import type { CaseLifecycle } from "../lifecycle/case-lifecycle";
 import type { CaseLoader } from "../types";
 import type { CaseRegistry } from "../types";
 import type { CasePersistence } from "../types";
-import type { CaseDefinition, FullCase, CaseLocation } from "@/types/case";
-import type { CaseProgress } from "@/domain/repositories/progress-repository";
+import type { FullCase, CaseLocation } from "@/types/case";
+
 import type { Result } from "@/domain/results/result";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
+
 import type { EventBus, DomainEvent } from "@/domain/events/base-event";
 import { success, failure } from "@/domain/results/result";
-import { now, createDomainTimestamp } from "@/domain/value-objects/timestamp";
-import { CaseNotFoundError, CaseLockedError, InvalidProgressError, EngineError } from "@/domain/errors/domain-error";
-import { createCaseContext, updateContextTimestamp, addContextError, cloneContext } from "../context/case-context";
-import { createSession, pauseSession, resumeSession, getSessionSummary, resetSession } from "../session/case-session";
+import { now } from "@/domain/value-objects/timestamp";
+import { CaseNotFoundError, InvalidProgressError, EngineError } from "@/domain/errors/domain-error";
+import { createCaseContext, addContextError } from "../context/case-context";
+import {
+  createSession,
+  pauseSession,
+  resumeSession,
+  getSessionSummary,
+  resetSession,
+} from "../session/case-session";
 
 export class CaseManager {
   private _contexts: Map<string, CaseContext> = new Map();
@@ -81,7 +87,9 @@ export class CaseManager {
         context.activeCase = fullResult.data;
         context.objectives = this._buildObjectivesFromDefinition(fullResult.data);
       } else {
-        context.objectives = this._buildObjectivesFromDefinition(defResult.data as unknown as FullCase);
+        context.objectives = this._buildObjectivesFromDefinition(
+          defResult.data as unknown as FullCase,
+        );
       }
 
       this._lifecycle.transition("validating");
@@ -118,7 +126,9 @@ export class CaseManager {
     }
 
     if (!this._lifecycle.canTransition("running")) {
-      return failure(new InvalidProgressError(`Cannot start case in state '${this._lifecycle.currentState}'`));
+      return failure(
+        new InvalidProgressError(`Cannot start case in state '${this._lifecycle.currentState}'`),
+      );
     }
 
     this._lifecycle.transition("running");
@@ -136,7 +146,9 @@ export class CaseManager {
     if (!context) return failure(new CaseNotFoundError(playerId));
 
     if (!this._lifecycle.canTransition("paused")) {
-      return failure(new InvalidProgressError(`Cannot pause case in state '${this._lifecycle.currentState}'`));
+      return failure(
+        new InvalidProgressError(`Cannot pause case in state '${this._lifecycle.currentState}'`),
+      );
     }
 
     this._lifecycle.transition("paused");
@@ -155,7 +167,9 @@ export class CaseManager {
     if (!context) return failure(new CaseNotFoundError(playerId));
 
     if (!this._lifecycle.canTransition("running")) {
-      return failure(new InvalidProgressError(`Cannot resume case in state '${this._lifecycle.currentState}'`));
+      return failure(
+        new InvalidProgressError(`Cannot resume case in state '${this._lifecycle.currentState}'`),
+      );
     }
 
     this._lifecycle.transition("running");
@@ -174,7 +188,9 @@ export class CaseManager {
     if (!context) return failure(new CaseNotFoundError(playerId));
 
     if (!this._lifecycle.canTransition("completing")) {
-      return failure(new InvalidProgressError(`Cannot complete case in state '${this._lifecycle.currentState}'`));
+      return failure(
+        new InvalidProgressError(`Cannot complete case in state '${this._lifecycle.currentState}'`),
+      );
     }
 
     this._lifecycle.transition("completing");
@@ -188,9 +204,10 @@ export class CaseManager {
         score: context.progress?.score ?? 0,
         timeSpentSeconds: context.session.playTimeSeconds,
         hintsUsed: context.progress?.hintsUsed ?? 0,
-        accuracy: (context.progress?.totalEvidence ?? 0) > 0
-          ? (context.progress?.evidenceFound ?? 0) / (context.progress?.totalEvidence ?? 1)
-          : 0,
+        accuracy:
+          (context.progress?.totalEvidence ?? 0) > 0
+            ? (context.progress?.evidenceFound ?? 0) / (context.progress?.totalEvidence ?? 1)
+            : 0,
       });
 
       return success(context);
@@ -206,7 +223,9 @@ export class CaseManager {
     if (!context) return failure(new CaseNotFoundError(playerId));
 
     if (!this._lifecycle.canTransition("failing")) {
-      return failure(new InvalidProgressError(`Cannot fail case in state '${this._lifecycle.currentState}'`));
+      return failure(
+        new InvalidProgressError(`Cannot fail case in state '${this._lifecycle.currentState}'`),
+      );
     }
 
     this._lifecycle.transition("failing");
@@ -226,7 +245,9 @@ export class CaseManager {
     if (!context) return failure(new CaseNotFoundError(playerId));
 
     if (!this._lifecycle.canTransition("resetting")) {
-      return failure(new InvalidProgressError(`Cannot reset case in state '${this._lifecycle.currentState}'`));
+      return failure(
+        new InvalidProgressError(`Cannot reset case in state '${this._lifecycle.currentState}'`),
+      );
     }
 
     this._lifecycle.transition("resetting");
@@ -334,7 +355,9 @@ export class CaseManager {
     }
   }
 
-  private _buildObjectivesFromDefinition(def: FullCase): import("@/domain/models/objective").Objective[] {
+  private _buildObjectivesFromDefinition(
+    def: FullCase,
+  ): import("@/domain/models/objective").Objective[] {
     return def.objectives.map((obj) => ({
       id: obj.id,
       caseId: def.id,

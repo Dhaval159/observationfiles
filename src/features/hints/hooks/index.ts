@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { EventEmitter } from "@/types/engine";
 import type { HintCategory, HintLevel } from "@/types/hint";
 import type { HintEligibilityContext, HintEvaluation, HintState } from "../types";
@@ -35,17 +35,8 @@ function createEventEmitter(): EventEmitter {
 }
 
 export function useHintEngine(): HintEngine {
-  const emitterRef = useRef<EventEmitter | null>(null);
-  const engineRef = useRef<HintEngine | null>(null);
-
-  if (!emitterRef.current) {
-    emitterRef.current = createEventEmitter();
-  }
-  if (!engineRef.current) {
-    engineRef.current = new HintEngine(emitterRef.current);
-  }
-
-  return engineRef.current;
+  const [engine] = useState(() => new HintEngine(createEventEmitter()));
+  return engine;
 }
 
 export function useAvailableHints(context: HintEligibilityContext): {
@@ -67,7 +58,8 @@ export function useAvailableHints(context: HintEligibilityContext): {
   }, [engine, context]);
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(refresh, 0);
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   return { hints, isLoading, refresh };
@@ -159,9 +151,12 @@ export function useHintStatus(): {
   }, [engine]);
 
   useEffect(() => {
-    update();
     const interval = setInterval(update, 5000);
-    return () => clearInterval(interval);
+    const initTimer = setTimeout(update, 0);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(initTimer);
+    };
   }, [update]);
 
   return { hintsRemaining, freeHintsRemaining, totalPenalty, canRequestHint, isLoading };

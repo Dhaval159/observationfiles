@@ -1,6 +1,17 @@
-import type { InvestigationLifecycleState, LifecycleSnapshot, InvestigationContext } from "../types";
-import { isValidTransition, getAvailableTransitions, isTerminalState, isActiveState, isExplorationState, getStateLabel } from "./investigation-lifecycle-states";
-import { now, type DomainTimestamp } from "@/domain/value-objects/timestamp";
+import type {
+  InvestigationLifecycleState,
+  LifecycleSnapshot,
+  InvestigationContext,
+} from "../types";
+import {
+  isValidTransition,
+  getAvailableTransitions,
+  isTerminalState,
+  isActiveState,
+  isExplorationState,
+  getStateLabel,
+} from "./investigation-lifecycle-states";
+import { now } from "@/domain/value-objects/timestamp";
 
 export class InvestigationLifecycle {
   private _currentState: InvestigationLifecycleState = "not_started";
@@ -33,15 +44,17 @@ export class InvestigationLifecycle {
     return isValidTransition(this._currentState, to);
   }
 
-  transition(to: InvestigationLifecycleState, metadata?: Record<string, unknown>): LifecycleSnapshot {
+  transition(
+    to: InvestigationLifecycleState,
+    metadata?: Record<string, unknown>,
+  ): LifecycleSnapshot {
     if (!this.canTransition(to)) {
       throw new Error(
         `Invalid investigation lifecycle transition: '${this._currentState}' -> '${to}'. ` +
-        `Available: [${getAvailableTransitions(this._currentState).join(", ")}]`,
+          `Available: [${getAvailableTransitions(this._currentState).join(", ")}]`,
       );
     }
 
-    const previousState = this._currentState;
     const timestamp = now();
 
     const snapshot: LifecycleSnapshot = {
@@ -62,7 +75,10 @@ export class InvestigationLifecycle {
     return snapshot;
   }
 
-  forceTransition(to: InvestigationLifecycleState, metadata?: Record<string, unknown>): LifecycleSnapshot {
+  forceTransition(
+    to: InvestigationLifecycleState,
+    metadata?: Record<string, unknown>,
+  ): LifecycleSnapshot {
     const timestamp = now();
 
     const snapshot: LifecycleSnapshot = {

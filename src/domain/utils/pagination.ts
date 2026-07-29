@@ -32,7 +32,7 @@ export function paginate<T>(items: T[], params: PaginationParams): PaginationRes
   };
 }
 
-export function getPageRange(total: number, limit: number): { start: number; end: number } {
+export function getPageRange(total: number, _limit: number): { start: number; end: number } {
   return {
     start: 0,
     end: Math.max(0, total - 1),
@@ -47,7 +47,11 @@ export function calculateTotalPages(total: number, limit: number): number {
   return Math.max(1, Math.ceil(total / Math.max(1, limit)));
 }
 
-export function getVisiblePageNumbers(currentPage: number, totalPages: number, maxVisible: number = 5): number[] {
+export function getVisiblePageNumbers(
+  currentPage: number,
+  totalPages: number,
+  maxVisible: number = 5,
+): number[] {
   const pages: number[] = [];
 
   if (totalPages <= maxVisible) {
@@ -59,7 +63,7 @@ export function getVisiblePageNumbers(currentPage: number, totalPages: number, m
 
   const half = Math.floor(maxVisible / 2);
   let start = Math.max(1, currentPage - half);
-  let end = Math.min(totalPages, start + maxVisible - 1);
+  const end = Math.min(totalPages, start + maxVisible - 1);
 
   if (end - start + 1 < maxVisible) {
     start = Math.max(1, end - maxVisible + 1);

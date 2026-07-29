@@ -1,27 +1,31 @@
-"use client"
+"use client";
 
-import { forwardRef, type ReactNode, type HTMLAttributes } from "react"
+import { forwardRef, type ReactNode, type HTMLAttributes } from "react";
 
 interface SidebarProps extends HTMLAttributes<HTMLDivElement> {
-  isOpen?: boolean
-  children: ReactNode
+  isOpen?: boolean;
+  children: ReactNode;
 }
 
 const Sidebar = forwardRef<HTMLDivElement, SidebarProps>(function Sidebar(
-  { isOpen = true, children, ...props },
-  ref
+  { children, ...props },
+  ref,
 ) {
-  return <div ref={ref} {...props}>{children}</div>
-})
+  return (
+    <div ref={ref} {...props}>
+      {children}
+    </div>
+  );
+});
 
 interface SidebarItemProps extends HTMLAttributes<HTMLDivElement> {
-  active?: boolean
-  children: ReactNode
+  active?: boolean;
+  children: ReactNode;
 }
 
-function SidebarItem({ active = false, children, ...props }: SidebarItemProps) {
-  return <div {...props}>{children}</div>
+function SidebarItem({ children, ...props }: SidebarItemProps) {
+  return <div {...props}>{children}</div>;
 }
 
-export { Sidebar, SidebarItem }
-export type { SidebarProps, SidebarItemProps }
+export { Sidebar, SidebarItem };
+export type { SidebarProps, SidebarItemProps };

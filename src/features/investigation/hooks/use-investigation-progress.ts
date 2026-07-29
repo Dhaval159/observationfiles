@@ -28,9 +28,12 @@ export function useInvestigationProgress(playerId: string | null) {
   }, [playerId]);
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(refresh, 0);
     const interval = setInterval(refresh, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [refresh]);
 
   return { overall, objectives, evidence, observations, isLoading, refresh };

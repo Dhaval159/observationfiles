@@ -2,6 +2,7 @@ import { supabaseService } from "../supabase";
 import { useAuthStore } from "@/stores/auth-store";
 import type { User } from "@/types/user";
 import type { AuthStatus } from "@/types/auth";
+import { isSupabaseConfigured } from "@/config/environment";
 
 function mapSupabaseUserToUser(supabaseUser: Record<string, unknown>): User {
   const raw = supabaseUser as {
@@ -30,11 +31,27 @@ function mapSupabaseUserToUser(supabaseUser: Record<string, unknown>): User {
 export class AuthService {
   private initialized = false;
 
+  private requireClient() {
+    const client = supabaseService.client;
+    if (!client) {
+      throw new Error("Supabase is not configured");
+    }
+    return client;
+  }
+
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
+    if (!isSupabaseConfigured()) {
+      useAuthStore.getState().setStatus("unauthenticated");
+      useAuthStore.getState().setUser(null);
+      this.initialized = true;
+      return;
+    }
+
+    const client = this.requireClient();
     try {
-      const { data, error } = await supabaseService.client.auth.getSession();
+      const { data, error } = await client.auth.getSession();
       if (error || !data.session) {
         useAuthStore.getState().setStatus("unauthenticated");
         useAuthStore.getState().setUser(null);
@@ -42,7 +59,7 @@ export class AuthService {
         return;
       }
 
-      const { data: userData, error: userError } = await supabaseService.client.auth.getUser();
+      const { data: userData, error: userError } = await client.auth.getUser();
       if (userError || !userData.user) {
         useAuthStore.getState().setStatus("unauthenticated");
         useAuthStore.getState().setUser(null);
@@ -62,7 +79,8 @@ export class AuthService {
   }
 
   async login(email: string, password: string): Promise<User> {
-    const { data, error } = await supabaseService.client.auth.signInWithPassword({
+    const client = this.requireClient();
+    const { data, error } = await client.auth.signInWithPassword({
       email,
       password,
     });
@@ -78,7 +96,8 @@ export class AuthService {
   }
 
   async signup(email: string, password: string, username: string): Promise<User> {
-    const { data, error } = await supabaseService.client.auth.signUp({
+    const client = this.requireClient();
+    const { data, error } = await client.auth.signUp({
       email,
       password,
       options: {
@@ -98,13 +117,16 @@ export class AuthService {
   }
 
   async logout(): Promise<void> {
-    await supabaseService.client.auth.signOut();
+    if (isSupabaseConfigured() && supabaseService.client) {
+      await supabaseService.client.auth.signOut();
+    }
     useAuthStore.getState().setUser(null);
     useAuthStore.getState().setStatus("unauthenticated");
   }
 
   async resetPassword(email: string): Promise<void> {
-    const { error } = await supabaseService.client.auth.resetPasswordForEmail(email);
+    const client = this.requireClient();
+    const { error } = await client.auth.resetPasswordForEmail(email);
     if (error) {
       throw new Error(error.message ?? "Password reset failed");
     }
@@ -119,9 +141,13 @@ export class AuthService {
   }
 
   onAuthChange(callback: (status: AuthStatus, user: User | null) => void): () => void {
+    if (!isSupabaseConfigured()) return () => {};
+
+    const client = this.requireClient();
+
     const handler = async (event: string) => {
       if (event === "SIGNED_IN") {
-        const { data } = await supabaseService.client.auth.getUser();
+        const { data } = await client.auth.getUser();
         if (data.user) {
           const user = mapSupabaseUserToUser(data.user as unknown as Record<string, unknown>);
           useAuthStore.getState().setUser(user);
@@ -133,7 +159,7 @@ export class AuthService {
         useAuthStore.getState().setStatus("unauthenticated");
         callback("unauthenticated", null);
       } else if (event === "TOKEN_REFRESHED") {
-        const { data } = await supabaseService.client.auth.getUser();
+        const { data } = await client.auth.getUser();
         if (data.user) {
           const user = mapSupabaseUserToUser(data.user as unknown as Record<string, unknown>);
           useAuthStore.getState().setUser(user);

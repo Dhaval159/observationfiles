@@ -6,7 +6,7 @@ import type {
   InterrogationSession,
 } from "@/types/interrogation";
 import type { ChoiceEvaluation, NodeEvaluation, InterrogationEngineState } from "../types";
-import { evaluateConditions, getAvailableChoices, createInterrogationSession } from "../utils";
+import { getAvailableChoices, createInterrogationSession } from "../utils";
 
 export class InterrogationEngine {
   private emitter: EventEmitter;

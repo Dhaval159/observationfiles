@@ -15,19 +15,35 @@ export class ObservationValidator {
     const warnings: ObservationValidationWarning[] = [];
 
     if (!def.id || def.id.trim().length === 0) {
-      errors.push({ code: "OBS_NO_ID", message: "Observation must have a non-empty id", field: "id" });
+      errors.push({
+        code: "OBS_NO_ID",
+        message: "Observation must have a non-empty id",
+        field: "id",
+      });
     }
 
     if (!def.caseId || def.caseId.trim().length === 0) {
-      errors.push({ code: "OBS_NO_CASE_ID", message: "Observation must have a caseId", field: "caseId" });
+      errors.push({
+        code: "OBS_NO_CASE_ID",
+        message: "Observation must have a caseId",
+        field: "caseId",
+      });
     }
 
     if (!def.title || def.title.trim().length === 0) {
-      errors.push({ code: "OBS_NO_TITLE", message: "Observation must have a title", field: "title" });
+      errors.push({
+        code: "OBS_NO_TITLE",
+        message: "Observation must have a title",
+        field: "title",
+      });
     }
 
     if (!def.category) {
-      errors.push({ code: "OBS_NO_CATEGORY", message: "Observation must have a category", field: "category" });
+      errors.push({
+        code: "OBS_NO_CATEGORY",
+        message: "Observation must have a category",
+        field: "category",
+      });
     }
 
     if (def.maxObservationCount !== undefined && def.maxObservationCount < 1) {
@@ -88,7 +104,11 @@ export class ObservationValidator {
     const warnings: ObservationValidationWarning[] = [];
 
     if (!dep.dependsOnId || dep.dependsOnId.trim().length === 0) {
-      errors.push({ code: "DEP_NO_TARGET", message: "Dependency must have a target id", field: "dependsOnId" });
+      errors.push({
+        code: "DEP_NO_TARGET",
+        message: "Dependency must have a target id",
+        field: "dependsOnId",
+      });
     }
 
     if (existingIds.size > 0 && !existingIds.has(dep.dependsOnId)) {
@@ -177,7 +197,7 @@ export class ObservationValidator {
     const errors: ObservationValidationError[] = [];
     const warnings: ObservationValidationWarning[] = [];
 
-    for (const [id, def] of ctx.definitions) {
+    for (const [, def] of ctx.definitions) {
       const defResult = this.validateDefinition(def);
       errors.push(...defResult.errors);
       warnings.push(...defResult.warnings);

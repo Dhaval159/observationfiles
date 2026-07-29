@@ -2,11 +2,11 @@ import type { IInvestigationEngine } from "../i-investigation-engine";
 import type { Result } from "@/domain/results/result";
 import type { EventBus } from "@/domain/events/base-event";
 import type { InvestigatablePlugin } from "./types";
-import type { DiscoveryEntry, DiscoveryType } from "./types";
-import type { Requirement, RequirementSet } from "@/domain/models/unlock-condition";
+import type { DiscoveryEntry } from "./types";
+
 import { InvestigationState } from "@/domain/enums";
 import { success, failure } from "@/domain/results/result";
-import { InvalidProgressError, EngineError } from "@/domain/errors/domain-error";
+import { InvalidProgressError } from "@/domain/errors/domain-error";
 import { InvestigationLifecycle } from "./lifecycle/investigation-lifecycle";
 import { InvestigationFlowManager } from "./flow/investigation-flow-manager";
 import { DiscoveryManager } from "./discovery/discovery-manager";
@@ -17,7 +17,11 @@ import { NotificationCoordinator } from "./notification/notification-coordinator
 import { InvestigationSearch } from "./search/investigation-search";
 import { InvestigationFilter } from "./filter/investigation-filter";
 import type { UnlockableSystem } from "./unlock/unlock-coordinator";
-import type { InvestigationContext, InvestigationLifecycleState, ProgressWeightConfig } from "./types";
+import type {
+  InvestigationContext,
+  InvestigationLifecycleState,
+  ProgressWeightConfig,
+} from "./types";
 import { now } from "@/domain/value-objects/timestamp";
 
 const LIFECYCLE_TO_STATE: Record<InvestigationLifecycleState, string> = {
@@ -193,10 +197,7 @@ export class InvestigationEngine implements IInvestigationEngine {
     return this._flowManager.isActive(playerId);
   }
 
-  moveToLocation(
-    playerId: string,
-    locationId: string,
-  ): Result<InvestigationContext> {
+  moveToLocation(playerId: string, locationId: string): Result<InvestigationContext> {
     const result = this._flowManager.setCurrentLocation(playerId, locationId);
     if (result.success && this._config.enableActivityTracking) {
       this._activityTracker.trackAction(result.data, "move_to_location", {
@@ -219,8 +220,8 @@ export class InvestigationEngine implements IInvestigationEngine {
     const entry: DiscoveryEntry = {
       id: evidenceId,
       type: "evidence",
-      name: options?.metadata?.["name"] as string ?? evidenceId,
-      description: options?.metadata?.["description"] as string ?? "",
+      name: (options?.metadata?.["name"] as string) ?? evidenceId,
+      description: (options?.metadata?.["description"] as string) ?? "",
       locationId: options?.locationId ?? ctx.currentLocationId,
       discoveredAt: now(),
       isHidden: false,
@@ -233,7 +234,10 @@ export class InvestigationEngine implements IInvestigationEngine {
       ctx,
       entry,
       this._config.enableEventSystem && this._eventBus
-        ? { publish: (event: unknown) => this._eventBus!.publish(event as Parameters<EventBus["publish"]>[0]) }
+        ? {
+            publish: (event: unknown) =>
+              this._eventBus!.publish(event as Parameters<EventBus["publish"]>[0]),
+          }
         : undefined,
     );
 
@@ -268,8 +272,8 @@ export class InvestigationEngine implements IInvestigationEngine {
     const entry: DiscoveryEntry = {
       id: observationId,
       type: "observation",
-      name: options?.metadata?.["name"] as string ?? observationId,
-      description: options?.metadata?.["description"] as string ?? "",
+      name: (options?.metadata?.["name"] as string) ?? observationId,
+      description: (options?.metadata?.["description"] as string) ?? "",
       locationId: options?.locationId ?? ctx.currentLocationId,
       discoveredAt: now(),
       isHidden: false,
@@ -282,7 +286,10 @@ export class InvestigationEngine implements IInvestigationEngine {
       ctx,
       entry,
       this._config.enableEventSystem && this._eventBus
-        ? { publish: (event: unknown) => this._eventBus!.publish(event as Parameters<EventBus["publish"]>[0]) }
+        ? {
+            publish: (event: unknown) =>
+              this._eventBus!.publish(event as Parameters<EventBus["publish"]>[0]),
+          }
         : undefined,
     );
 
@@ -331,10 +338,7 @@ export class InvestigationEngine implements IInvestigationEngine {
     return success(ctx);
   }
 
-  completeObjective(
-    playerId: string,
-    objectiveId: string,
-  ): Result<InvestigationContext> {
+  completeObjective(playerId: string, objectiveId: string): Result<InvestigationContext> {
     const ctxResult = this._flowManager.getContext(playerId);
     if (!ctxResult.success) return failure(ctxResult.error);
 
@@ -356,11 +360,7 @@ export class InvestigationEngine implements IInvestigationEngine {
     }
 
     if (this._config.enableNotifications) {
-      this._notificationCoordinator.notifyObjectiveUpdate(
-        ctx,
-        objectiveId,
-        "completed",
-      );
+      this._notificationCoordinator.notifyObjectiveUpdate(ctx, objectiveId, "completed");
     }
 
     if (this._config.enableAutoProgress) {
@@ -374,10 +374,7 @@ export class InvestigationEngine implements IInvestigationEngine {
     return success(ctx);
   }
 
-  failObjective(
-    playerId: string,
-    objectiveId: string,
-  ): Result<InvestigationContext> {
+  failObjective(playerId: string, objectiveId: string): Result<InvestigationContext> {
     const ctxResult = this._flowManager.getContext(playerId);
     if (!ctxResult.success) return failure(ctxResult.error);
 
@@ -398,11 +395,7 @@ export class InvestigationEngine implements IInvestigationEngine {
     }
 
     if (this._config.enableNotifications) {
-      this._notificationCoordinator.notifyObjectiveUpdate(
-        ctx,
-        objectiveId,
-        "failed",
-      );
+      this._notificationCoordinator.notifyObjectiveUpdate(ctx, objectiveId, "failed");
     }
 
     return success(ctx);
@@ -414,10 +407,7 @@ export class InvestigationEngine implements IInvestigationEngine {
     return success(this._discoveryManager.getDiscoveryCounts(ctxResult.data));
   }
 
-  getRecentDiscoveries(
-    playerId: string,
-    limit?: number,
-  ): Result<DiscoveryEntry[]> {
+  getRecentDiscoveries(playerId: string, limit?: number): Result<DiscoveryEntry[]> {
     const ctxResult = this._flowManager.getContext(playerId);
     if (!ctxResult.success) return failure(ctxResult.error);
     return success(this._discoveryManager.getRecentDiscoveries(ctxResult.data, limit));
@@ -468,12 +458,12 @@ export class InvestigationEngine implements IInvestigationEngine {
 
   // IInvestigationEngine implementation (bridging to external InvestigationState enum)
 
-  async getState(
-    caseId: string,
-    playerId: string,
-  ): Promise<Result<InvestigationState>> {
+  async getState(caseId: string, playerId: string): Promise<Result<InvestigationState>> {
     const state = this._flowManager.getState(playerId);
-    return success((LIFECYCLE_TO_STATE[state as InvestigationLifecycleState] ?? InvestigationState.IDLE) as InvestigationState);
+    return success(
+      (LIFECYCLE_TO_STATE[state as InvestigationLifecycleState] ??
+        InvestigationState.IDLE) as InvestigationState,
+    );
   }
 
   async setState(
@@ -484,32 +474,24 @@ export class InvestigationEngine implements IInvestigationEngine {
     const result = this._flowManager.transitionTo(playerId, state);
     if (!result.success) return failure(result.error);
     return success(
-      (LIFECYCLE_TO_STATE[result.data.lifecycleState] ?? InvestigationState.IDLE) as InvestigationState,
+      (LIFECYCLE_TO_STATE[result.data.lifecycleState] ??
+        InvestigationState.IDLE) as InvestigationState,
     );
   }
 
-  async pause(
-    caseId: string,
-    playerId: string,
-  ): Promise<Result<void>> {
+  async pause(caseId: string, playerId: string): Promise<Result<void>> {
     const result = this._flowManager.pause(playerId);
     if (!result.success) return failure(result.error);
     return success(undefined);
   }
 
-  async resume(
-    caseId: string,
-    playerId: string,
-  ): Promise<Result<void>> {
+  async resume(caseId: string, playerId: string): Promise<Result<void>> {
     const result = this._flowManager.resume(playerId);
     if (!result.success) return failure(result.error);
     return success(undefined);
   }
 
-  async getElapsedTime(
-    caseId: string,
-    playerId: string,
-  ): Promise<Result<number>> {
+  async getElapsedTime(caseId: string, playerId: string): Promise<Result<number>> {
     return success(this._flowManager.getElapsedTime(playerId));
   }
 
@@ -526,18 +508,14 @@ export class InvestigationEngine implements IInvestigationEngine {
     ];
   }
 
-  async getCurrentPhase(
-    caseId: string,
-    playerId: string,
-  ): Promise<Result<string>> {
+  async getCurrentPhase(caseId: string, playerId: string): Promise<Result<string>> {
     const state = this._flowManager.getState(playerId);
-    return success(LIFECYCLE_TO_STATE[state as InvestigationLifecycleState] ?? InvestigationState.IDLE);
+    return success(
+      LIFECYCLE_TO_STATE[state as InvestigationLifecycleState] ?? InvestigationState.IDLE,
+    );
   }
 
-  async advancePhase(
-    caseId: string,
-    playerId: string,
-  ): Promise<Result<string>> {
+  async advancePhase(caseId: string, playerId: string): Promise<Result<string>> {
     const contextResult = this._flowManager.getContext(playerId);
     if (!contextResult.success) return failure(contextResult.error);
 
@@ -554,20 +532,12 @@ export class InvestigationEngine implements IInvestigationEngine {
 
     const currentIdx = advanceOrder.indexOf(currentState);
     if (currentIdx === -1) {
-      return failure(
-        new InvalidProgressError(
-          `Cannot advance phase from '${currentState}'`,
-        ),
-      );
+      return failure(new InvalidProgressError(`Cannot advance phase from '${currentState}'`));
     }
 
     const nextIdx = currentIdx + 1;
     if (nextIdx >= advanceOrder.length) {
-      return failure(
-        new InvalidProgressError(
-          `Already at final phase '${currentState}'`,
-        ),
-      );
+      return failure(new InvalidProgressError(`Already at final phase '${currentState}'`));
     }
 
     const targetState = advanceOrder[nextIdx];
@@ -583,10 +553,7 @@ export class InvestigationEngine implements IInvestigationEngine {
     );
   }
 
-  async canAdvancePhase(
-    caseId: string,
-    playerId: string,
-  ): Promise<Result<boolean>> {
+  async canAdvancePhase(caseId: string, playerId: string): Promise<Result<boolean>> {
     const contextResult = this._flowManager.getContext(playerId);
     if (!contextResult.success) return failure(contextResult.error);
 

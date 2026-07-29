@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { CaseDefinition } from "@/types/case";
 import type { EventEmitter } from "@/types/engine";
 import { CaseEngine } from "../services";
@@ -37,17 +37,9 @@ function createEventEmitter(): EventEmitter {
 }
 
 export function useCaseEngine(): CaseEngine {
-  const emitterRef = useRef<EventEmitter | null>(null);
-  const engineRef = useRef<CaseEngine | null>(null);
-
-  if (!emitterRef.current) {
-    emitterRef.current = createEventEmitter();
-  }
-  if (!engineRef.current) {
-    engineRef.current = new CaseEngine(emitterRef.current);
-  }
-
-  return engineRef.current;
+  const [emitter] = useState(() => createEventEmitter());
+  const [engine] = useState(() => new CaseEngine(emitter));
+  return engine;
 }
 
 export function useCase(caseId: string): {
@@ -64,7 +56,7 @@ export function useCase(caseId: string): {
   useEffect(() => {
     let cancelled = false;
 
-    const loadCase = async () => {
+    const timer = setTimeout(async () => {
       setIsLoading(true);
       setError(null);
 
@@ -86,11 +78,11 @@ export function useCase(caseId: string): {
           setIsLoading(false);
         }
       }
-    };
+    }, 0);
 
-    loadCase();
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, [caseId, engine]);
 
@@ -166,9 +158,10 @@ export function useCaseProgress(caseId: string): {
   }, [engine]);
 
   useEffect(() => {
-    recalc();
+    const timer = setTimeout(recalc, 0);
     const interval = setInterval(recalc, 5000);
     return () => {
+      clearTimeout(timer);
       clearInterval(interval);
     };
   }, [recalc, caseId]);
@@ -189,20 +182,23 @@ export function useCaseUnlockStatus(caseId: string): {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
+    const timer = setTimeout(() => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      const unlocked = engine.isUnlocked(caseId, {
-        completedCases,
-        totalScore,
-      });
-      setIsUnlocked(unlocked);
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error(String(err)));
-    } finally {
-      setIsLoading(false);
-    }
+      try {
+        const unlocked = engine.isUnlocked(caseId, {
+          completedCases,
+          totalScore,
+        });
+        setIsUnlocked(unlocked);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setIsLoading(false);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [caseId, engine, completedCases, totalScore]);
 
   return { isUnlocked, isLoading, error };

@@ -1,6 +1,13 @@
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
-import type { ObservationLifecycleState, ObservationLifecycleSnapshot, ObservationEntry } from "../types";
-import { isValidTransition, getAvailableTransitions, getStateLabel } from "./observation-lifecycle-states";
+import type {
+  ObservationLifecycleState,
+  ObservationLifecycleSnapshot,
+  ObservationEntry,
+} from "../types";
+import {
+  isValidTransition,
+  getAvailableTransitions,
+  getStateLabel,
+} from "./observation-lifecycle-states";
 import { now } from "@/domain/value-objects/timestamp";
 
 export class ObservationLifecycle {
@@ -49,7 +56,7 @@ export class ObservationLifecycle {
     if (!this.canTransition(to)) {
       throw new Error(
         `Invalid observation lifecycle transition: '${this._currentState}' -> '${to}'. ` +
-        `Available: [${getAvailableTransitions(this._currentState).join(", ")}]`,
+          `Available: [${getAvailableTransitions(this._currentState).join(", ")}]`,
       );
     }
 

@@ -23,6 +23,7 @@ export const authNavigation: NavItem[] = [
 
 export const caseSubNavigation = (caseId: string): NavItem[] => [
   { label: "Overview", href: routes.cases.detail(caseId), icon: "FileText" },
+  { label: "Workspace", href: routes.cases.workspace(caseId), icon: "Search" },
   { label: "Investigate", href: routes.cases.investigate(caseId), icon: "Search" },
   { label: "Evidence", href: routes.cases.evidence(caseId), icon: "Package" },
   { label: "Observations", href: routes.cases.observations(caseId), icon: "Eye" },

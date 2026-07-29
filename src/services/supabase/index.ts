@@ -1,6 +1,7 @@
 import { getSupabase } from "@/lib/supabase";
 import type { Database } from "@/types/database/supabase";
 import type { ApiResponse } from "@/types/api";
+import { isSupabaseConfigured } from "@/config/environment";
 
 export const supabaseService = {
   getClient() {
@@ -11,34 +12,48 @@ export const supabaseService = {
     return getSupabase();
   },
 
+  isAvailable(): boolean {
+    return isSupabaseConfigured();
+  },
+
   from<T extends keyof Database["public"]["Tables"]>(table: T) {
-    return getSupabase().from(table);
+    const supabase = getSupabase();
+    if (!supabase) throw new Error("Supabase is not configured");
+    return supabase.from(table);
   },
 
   async getUser() {
+    const supabase = getSupabase();
+    if (!supabase) return null;
     const {
       data: { user },
       error,
-    } = await getSupabase().auth.getUser();
+    } = await supabase.auth.getUser();
     if (error || !user) return null;
     return user;
   },
 
   async getSession() {
+    const supabase = getSupabase();
+    if (!supabase) return null;
     const {
       data: { session },
       error,
-    } = await getSupabase().auth.getSession();
+    } = await supabase.auth.getSession();
     if (error || !session) return null;
     return session;
   },
 
   async signIn(email: string, password: string) {
-    return getSupabase().auth.signInWithPassword({ email, password });
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error("Supabase is not configured") };
+    return supabase.auth.signInWithPassword({ email, password });
   },
 
   async signUp(email: string, password: string, metadata?: Record<string, unknown>) {
-    return getSupabase().auth.signUp({
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error("Supabase is not configured") };
+    return supabase.auth.signUp({
       email,
       password,
       options: metadata ? { data: metadata } : undefined,
@@ -46,26 +61,36 @@ export const supabaseService = {
   },
 
   async signOut() {
-    return getSupabase().auth.signOut();
+    const supabase = getSupabase();
+    if (!supabase) return;
+    return supabase.auth.signOut();
   },
 
   async resetPassword(email: string) {
-    return getSupabase().auth.resetPasswordForEmail(email);
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error("Supabase is not configured") };
+    return supabase.auth.resetPasswordForEmail(email);
   },
 
   async uploadFile(bucket: string, path: string, file: File) {
-    return getSupabase().storage.from(bucket).upload(path, file);
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error("Supabase is not configured") };
+    return supabase.storage.from(bucket).upload(path, file);
   },
 
   getPublicUrl(bucket: string, path: string) {
-    const { data } = getSupabase().storage.from(bucket).getPublicUrl(path);
+    const supabase = getSupabase();
+    if (!supabase) return "";
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
   },
 
   onAuthStateChange(callback: (event: string, session: unknown) => void): () => void {
+    const supabase = getSupabase();
+    if (!supabase) return () => {};
     const {
       data: { subscription },
-    } = getSupabase().auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       callback(event, session);
     });
     return () => {

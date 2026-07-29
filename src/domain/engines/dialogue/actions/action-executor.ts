@@ -5,7 +5,7 @@ import type {
   NPCStateDefinition,
   JournalEntry,
 } from "../types";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
+
 import { NPCStateManager } from "../npc/npc-state-manager";
 import { generateUuid } from "@/domain/utils/id-generator";
 import { now } from "@/domain/value-objects/timestamp";
@@ -21,7 +21,7 @@ export function executeAction(
   action: DialogueActionDefinition,
   execCtx: ActionExecutionContext,
 ): void {
-  const { context, conversation, npcStateManager, npcState } = execCtx;
+  const { context, conversation, npcStateManager } = execCtx;
 
   switch (action.type) {
     case "unlock_dialogue":
@@ -81,19 +81,35 @@ export function executeAction(
       break;
 
     case "adjust_trust":
-      npcStateManager.adjustTrust(conversation.npcId ?? "", action.value as number, "dialogue_action");
+      npcStateManager.adjustTrust(
+        conversation.npcId ?? "",
+        action.value as number,
+        "dialogue_action",
+      );
       break;
 
     case "adjust_pressure":
-      npcStateManager.adjustPatience(conversation.npcId ?? "", -(action.value as number), "dialogue_action");
+      npcStateManager.adjustPatience(
+        conversation.npcId ?? "",
+        -(action.value as number),
+        "dialogue_action",
+      );
       break;
 
     case "adjust_stress":
-      npcStateManager.adjustStress(conversation.npcId ?? "", action.value as number, "dialogue_action");
+      npcStateManager.adjustStress(
+        conversation.npcId ?? "",
+        action.value as number,
+        "dialogue_action",
+      );
       break;
 
     case "adjust_suspicion":
-      npcStateManager.adjustSuspicion(conversation.npcId ?? "", action.value as number, "dialogue_action");
+      npcStateManager.adjustSuspicion(
+        conversation.npcId ?? "",
+        action.value as number,
+        "dialogue_action",
+      );
       break;
 
     case "set_emotional_state":
@@ -165,11 +181,7 @@ export function executeAction(
 
     case "update_npc_state": {
       if (action.metadata?.updateType === "hidden_variable") {
-        npcStateManager.setHiddenVariable(
-          conversation.npcId ?? "",
-          action.target,
-          action.value,
-        );
+        npcStateManager.setHiddenVariable(conversation.npcId ?? "", action.target, action.value);
       } else if (action.metadata?.updateType === "persistent_variable") {
         npcStateManager.setPersistentVariable(
           conversation.npcId ?? "",
@@ -181,8 +193,9 @@ export function executeAction(
     }
 
     case "award_points":
-      context.runtimeVariables.set("total_score",
-        (Number(context.runtimeVariables.get("total_score") ?? 0)) + (action.value as number),
+      context.runtimeVariables.set(
+        "total_score",
+        Number(context.runtimeVariables.get("total_score") ?? 0) + (action.value as number),
       );
       break;
 

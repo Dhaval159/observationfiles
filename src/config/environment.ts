@@ -8,3 +8,7 @@ export const env = {
   enableAnalytics: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === "true",
   enableAchievements: process.env.NEXT_PUBLIC_ENABLE_ACHIEVEMENTS !== "false",
 } as const;
+
+export function isSupabaseConfigured(): boolean {
+  return !!(env.supabaseUrl && env.supabaseAnonKey);
+}

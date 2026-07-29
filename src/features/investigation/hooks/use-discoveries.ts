@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getInvestigationEngine } from "../services/investigation-engine-service";
-import type { DiscoveryEntry, DiscoveryType } from "@/domain/engines/investigation/types";
+import type { DiscoveryEntry } from "@/domain/engines/investigation/types";
 
 export function useDiscoveries(playerId: string | null) {
   const [discoveries, setDiscoveries] = useState<DiscoveryEntry[]>([]);
@@ -70,7 +70,10 @@ export function useDiscoveries(playerId: string | null) {
   );
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   return {

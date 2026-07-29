@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getInvestigationEngine } from "../services/investigation-engine-service";
-import { useEngineInvestigationStore, type InvestigationEngineLifecycleState } from "@/stores/engine-investigation-store";
+import type { InvestigationEngineLifecycleState } from "@/stores/engine-investigation-store";
 import type { InvestigationContext } from "@/domain/engines/investigation/types";
 
 export function useInvestigation(playerId: string | null) {
@@ -10,8 +10,6 @@ export function useInvestigation(playerId: string | null) {
   const [isActive, setIsActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [context, setContext] = useState<InvestigationContext | null>(null);
-
-  const storeState = useEngineInvestigationStore.getState().lifecycleState;
 
   const refreshState = useCallback(() => {
     if (!playerId) return;
@@ -88,7 +86,10 @@ export function useInvestigation(playerId: string | null) {
   }, [playerId, refreshState]);
 
   useEffect(() => {
-    refreshState();
+    const timer = setTimeout(() => {
+      refreshState();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [playerId, refreshState]);
 
   return {

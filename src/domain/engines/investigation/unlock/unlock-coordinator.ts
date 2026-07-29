@@ -1,11 +1,11 @@
 import type { InvestigationContext } from "../types";
-import type { Requirement, RequirementSet } from "@/domain/models/unlock-condition";
+import type { Requirement } from "@/domain/models/unlock-condition";
 import type { Result } from "@/domain/results/result";
 import type { EvaluationContext } from "@/domain/utils/requirement-evaluator";
 import { success, failure } from "@/domain/results/result";
 import { EngineError } from "@/domain/errors/domain-error";
 import { now } from "@/domain/value-objects/timestamp";
-import { evaluateRequirement, evaluateRequirementSet } from "@/domain/utils/requirement-evaluator";
+import { evaluateRequirement } from "@/domain/utils/requirement-evaluator";
 import { touchContext } from "../context/investigation-context";
 
 export interface UnlockableSystem {
@@ -27,7 +27,10 @@ export class UnlockCoordinator {
   registerSystem(system: UnlockableSystem): Result<void> {
     if (this._systems.has(system.id)) {
       return failure(
-        new EngineError("UnlockCoordinator", `Unlockable system '${system.id}' is already registered`),
+        new EngineError(
+          "UnlockCoordinator",
+          `Unlockable system '${system.id}' is already registered`,
+        ),
       );
     }
     this._systems.set(system.id, system);
@@ -53,9 +56,7 @@ export class UnlockCoordinator {
     if (system.isUnlocked(ctx)) return true;
 
     const evalCtx = this._buildContext(ctx);
-    return system.requirements.every((req) =>
-      evaluateRequirement(req, evalCtx),
-    );
+    return system.requirements.every((req) => evaluateRequirement(req, evalCtx));
   }
 
   async unlockSystem(
@@ -64,7 +65,9 @@ export class UnlockCoordinator {
   ): Promise<Result<UnlockableSystem>> {
     const system = this._systems.get(systemId);
     if (!system) {
-      return failure(new EngineError("UnlockCoordinator", `Unlockable system '${systemId}' not found`));
+      return failure(
+        new EngineError("UnlockCoordinator", `Unlockable system '${systemId}' not found`),
+      );
     }
 
     if (system.isUnlocked(ctx)) {
@@ -72,9 +75,7 @@ export class UnlockCoordinator {
     }
 
     const evalCtx = this._buildContext(ctx);
-    const allMet = system.requirements.every((req) =>
-      evaluateRequirement(req, evalCtx),
-    );
+    const allMet = system.requirements.every((req) => evaluateRequirement(req, evalCtx));
 
     if (!allMet) {
       return failure(
@@ -131,7 +132,9 @@ export class UnlockCoordinator {
 
   private _buildContext(ctx: InvestigationContext): EvaluationContext {
     return {
-      completedObjectives: [...ctx.objectives.filter((o) => o.isCompleted).map((o) => o.objectiveId)],
+      completedObjectives: [
+        ...ctx.objectives.filter((o) => o.isCompleted).map((o) => o.objectiveId),
+      ],
       collectedEvidence: [...ctx.discoveries.discoveredEvidence],
       observationsMade: [...ctx.discoveries.discoveredObservations],
       visitedLocations: [...ctx.visitedLocationIds],

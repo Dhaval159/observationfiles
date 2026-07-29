@@ -3,8 +3,11 @@ import type { CaseDefinition } from "@/types/case";
 import type { CaseDifficulty } from "@/types/case";
 import type { Result } from "@/domain/results/result";
 import { success, failure } from "@/domain/results/result";
-import { CaseNotFoundError, DuplicateEvidenceError, ValidationError } from "@/domain/errors/domain-error";
-import { generateId } from "@/domain/utils/id-generator";
+import {
+  CaseNotFoundError,
+  DuplicateEvidenceError,
+  ValidationError,
+} from "@/domain/errors/domain-error";
 
 export class InMemoryCaseRegistry implements CaseRegistry {
   private _definitions: Map<string, CaseDefinition> = new Map();
@@ -14,9 +17,7 @@ export class InMemoryCaseRegistry implements CaseRegistry {
 
   register(definition: CaseDefinition): Result<void> {
     if (this._definitions.has(definition.id)) {
-      return failure(
-        new DuplicateEvidenceError(definition.id),
-      );
+      return failure(new DuplicateEvidenceError(definition.id));
     }
 
     this._definitions.set(definition.id, definition);

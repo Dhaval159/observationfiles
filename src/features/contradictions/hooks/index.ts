@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState } from "react";
 import { ContradictionEngine } from "../services";
 import type { Contradiction } from "@/types/contradiction";
 import type { EventEmitter } from "@/types/engine";
@@ -11,30 +11,21 @@ const noopEmitter: EventEmitter = {
   listenerCount: () => 0,
 };
 
-let engineInstance: ContradictionEngine | null = null;
-
 export function useContradictionEngine(emitter: EventEmitter): ContradictionEngine {
-  return useMemo(() => {
-    if (!engineInstance) {
-      engineInstance = new ContradictionEngine(emitter);
-    }
-    return engineInstance;
-  }, [emitter]);
+  const [engine] = useState(() => new ContradictionEngine(emitter));
+  return engine;
 }
 
 export function useContradictions(): Contradiction[] {
-  const engine = useContradictionEngine(noopEmitter);
-  return engine.getAllContradictions();
+  return useContradictionEngine(noopEmitter).getAllContradictions();
 }
 
 export function useStatementContradictions(statementId: string): Contradiction[] {
-  const engine = useContradictionEngine(noopEmitter);
-  return engine.getContradictionsForStatement(statementId);
+  return useContradictionEngine(noopEmitter).getContradictionsForStatement(statementId);
 }
 
 export function useContradiction(contradictionId: string): Contradiction | null {
-  const engine = useContradictionEngine(noopEmitter);
-  return engine.getContradiction(contradictionId);
+  return useContradictionEngine(noopEmitter).getContradiction(contradictionId);
 }
 
 export function useContradictionDiscovery(): {

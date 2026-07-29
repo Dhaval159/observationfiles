@@ -1,22 +1,16 @@
 import type {
   InvestigationContext,
   InvestigationDiscoveries,
-  InvestigationObjectiveState,
   InvestigationProgress,
   ActivityEntry,
   InvestigationNotification,
   LogEntry,
-  TimerState,
-  DiscoveryEntry,
 } from "../types";
 import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
-import { createDomainTimestamp, now } from "@/domain/value-objects/timestamp";
+import { now } from "@/domain/value-objects/timestamp";
 import { generateUuid } from "@/domain/utils/id-generator";
 
-export function createInvestigationContext(
-  caseId: string,
-  playerId: string,
-): InvestigationContext {
+export function createInvestigationContext(caseId: string, playerId: string): InvestigationContext {
   const timestamp = now();
   return {
     id: generateUuid(),
@@ -86,10 +80,7 @@ export function touchContext(ctx: InvestigationContext): void {
   ctx.updatedAt = now();
 }
 
-export function addActivity(
-  ctx: InvestigationContext,
-  entry: ActivityEntry,
-): void {
+export function addActivity(ctx: InvestigationContext, entry: ActivityEntry): void {
   ctx.activityHistory.push(entry);
   const types = ctx.recentActions;
   types.push(entry.actionType);
@@ -162,42 +153,25 @@ export function getDiscoveryCount(ctx: InvestigationContext): number {
   return count;
 }
 
-export function setRuntimeVariable(
-  ctx: InvestigationContext,
-  key: string,
-  value: unknown,
-): void {
+export function setRuntimeVariable(ctx: InvestigationContext, key: string, value: unknown): void {
   ctx.runtimeVariables.set(key, value);
   touchContext(ctx);
 }
 
-export function getRuntimeVariable(
-  ctx: InvestigationContext,
-  key: string,
-): unknown {
+export function getRuntimeVariable(ctx: InvestigationContext, key: string): unknown {
   return ctx.runtimeVariables.get(key);
 }
 
-export function setTemporaryCache(
-  ctx: InvestigationContext,
-  key: string,
-  value: unknown,
-): void {
+export function setTemporaryCache(ctx: InvestigationContext, key: string, value: unknown): void {
   ctx.temporaryCache.set(key, value);
   touchContext(ctx);
 }
 
-export function getTemporaryCache(
-  ctx: InvestigationContext,
-  key: string,
-): unknown {
+export function getTemporaryCache(ctx: InvestigationContext, key: string): unknown {
   return ctx.temporaryCache.get(key);
 }
 
-export function startTimer(
-  ctx: InvestigationContext,
-  timerId: string,
-): void {
+export function startTimer(ctx: InvestigationContext, timerId: string): void {
   ctx.sessionTimers.set(timerId, {
     id: timerId,
     startedAt: now(),
@@ -209,10 +183,7 @@ export function startTimer(
   touchContext(ctx);
 }
 
-export function pauseTimer(
-  ctx: InvestigationContext,
-  timerId: string,
-): void {
+export function pauseTimer(ctx: InvestigationContext, timerId: string): void {
   const timer = ctx.sessionTimers.get(timerId);
   if (timer && !timer.isPaused) {
     timer.pausedAt = now();
@@ -221,10 +192,7 @@ export function pauseTimer(
   }
 }
 
-export function resumeTimer(
-  ctx: InvestigationContext,
-  timerId: string,
-): void {
+export function resumeTimer(ctx: InvestigationContext, timerId: string): void {
   const timer = ctx.sessionTimers.get(timerId);
   if (timer && timer.isPaused && timer.pausedAt) {
     const pauseDuration = now().differenceInSeconds(timer.pausedAt);
@@ -235,20 +203,14 @@ export function resumeTimer(
   }
 }
 
-export function getTimerElapsed(
-  ctx: InvestigationContext,
-  timerId: string,
-): number {
+export function getTimerElapsed(ctx: InvestigationContext, timerId: string): number {
   const timer = ctx.sessionTimers.get(timerId);
   if (!timer) return 0;
   if (timer.isPaused) return timer.elapsedSeconds;
   return timer.elapsedSeconds + now().differenceInSeconds(timer.startedAt);
 }
 
-export function expireTimer(
-  ctx: InvestigationContext,
-  timerId: string,
-): void {
+export function expireTimer(ctx: InvestigationContext, timerId: string): void {
   const timer = ctx.sessionTimers.get(timerId);
   if (timer) {
     timer.isExpired = true;

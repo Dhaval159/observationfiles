@@ -39,7 +39,10 @@ export function useCaseProgress(caseId: string | null, playerId: string | null) 
 
   useEffect(() => {
     if (caseId && playerId) {
-      refreshProgress();
+      const timer = setTimeout(() => {
+        refreshProgress();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [caseId, playerId, refreshProgress]);
 

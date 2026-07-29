@@ -7,7 +7,7 @@ export interface SearchOptions {
 }
 
 export function search<T>(items: T[], options: SearchOptions): T[] {
-  const { query, fields, caseSensitive = false, exactMatch = false, fuzzyThreshold = 0.8 } = options;
+  const { query, fields, caseSensitive = false, exactMatch = false } = options;
 
   if (!query || query.trim().length === 0) return items;
 
@@ -40,7 +40,11 @@ function getNestedValue<T>(obj: T, path: string): unknown {
   }, obj);
 }
 
-export function rankSearchResults<T>(items: T[], query: string, fields: string[]): Array<{ item: T; score: number }> {
+export function rankSearchResults<T>(
+  items: T[],
+  query: string,
+  fields: string[],
+): Array<{ item: T; score: number }> {
   const normalizedQuery = query.toLowerCase();
   return items
     .map((item) => {

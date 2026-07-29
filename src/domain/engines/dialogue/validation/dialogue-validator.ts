@@ -17,15 +17,30 @@ export class DialogueValidator {
     }
 
     if (!tree.rootNodeId || tree.rootNodeId.trim().length === 0) {
-      errors.push({ code: "TREE_NO_ROOT", message: "Tree must have a root node", field: "rootNodeId", treeId: tree.id });
+      errors.push({
+        code: "TREE_NO_ROOT",
+        message: "Tree must have a root node",
+        field: "rootNodeId",
+        treeId: tree.id,
+      });
     }
 
     if (!tree.nodes.has(tree.rootNodeId)) {
-      errors.push({ code: "TREE_ROOT_NOT_FOUND", message: `Root node '${tree.rootNodeId}' not found`, field: "rootNodeId", treeId: tree.id });
+      errors.push({
+        code: "TREE_ROOT_NOT_FOUND",
+        message: `Root node '${tree.rootNodeId}' not found`,
+        field: "rootNodeId",
+        treeId: tree.id,
+      });
     }
 
     if (tree.nodes.size === 0) {
-      errors.push({ code: "TREE_NO_NODES", message: "Tree has no nodes", field: "nodes", treeId: tree.id });
+      errors.push({
+        code: "TREE_NO_NODES",
+        message: "Tree has no nodes",
+        field: "nodes",
+        treeId: tree.id,
+      });
     }
 
     const allNodeIds = new Set<string>();
@@ -76,11 +91,22 @@ export class DialogueValidator {
     const errors: DialogueValidationError[] = [];
 
     if (!node.id || node.id.trim().length === 0) {
-      errors.push({ code: "NODE_NO_ID", message: "Node must have an id", field: "id", treeId: tree.id });
+      errors.push({
+        code: "NODE_NO_ID",
+        message: "Node must have an id",
+        field: "id",
+        treeId: tree.id,
+      });
     }
 
     if (!node.text || node.text.trim().length === 0) {
-      errors.push({ code: "NODE_NO_TEXT", message: `Node '${node.id}' has no text`, field: "text", treeId: tree.id, nodeId: node.id });
+      errors.push({
+        code: "NODE_NO_TEXT",
+        message: `Node '${node.id}' has no text`,
+        field: "text",
+        treeId: tree.id,
+        nodeId: node.id,
+      });
     }
 
     if (node.choices.length > 0 && node.nextNodeId) {
@@ -124,7 +150,7 @@ export class DialogueValidator {
     const errors: DialogueValidationError[] = [];
     const warnings: DialogueValidationWarning[] = [];
 
-    for (const [treeId, tree] of ctx.treeDefinitions) {
+    for (const [, tree] of ctx.treeDefinitions) {
       const treeResult = this.validateTree(tree);
       errors.push(...treeResult.errors);
       warnings.push(...treeResult.warnings);

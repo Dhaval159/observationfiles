@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { EventEmitter } from "@/types/engine";
 import type { FullTimelineEvent, TimelineEventDependency } from "@/types/timeline";
 import type { TimelineValidationReport } from "../types";
@@ -35,14 +35,8 @@ function createEventEmitter(): EventEmitter {
 }
 
 export function useTimelineEngine(): TimelineEngine {
-  const emitterRef = useRef<EventEmitter>(createEventEmitter());
-  const engineRef = useRef<TimelineEngine | null>(null);
-
-  if (!engineRef.current) {
-    engineRef.current = new TimelineEngine(emitterRef.current);
-  }
-
-  return engineRef.current;
+  const [engine] = useState(() => new TimelineEngine(createEventEmitter()));
+  return engine;
 }
 
 export function useTimelineEvents(): {

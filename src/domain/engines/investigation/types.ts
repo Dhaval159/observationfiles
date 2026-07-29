@@ -1,7 +1,6 @@
 import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
 import type { Objective } from "@/domain/models/objective";
-import type { SearchResult, Filter, FilterGroup } from "@/domain/models/search-result";
-import type { Requirement, RequirementSet } from "@/domain/models/unlock-condition";
+import type { Filter } from "@/domain/models/search-result";
 
 export type InvestigationLifecycleState =
   | "not_started"
@@ -218,10 +217,10 @@ export interface ProgressWeightConfig {
 
 export const DEFAULT_PROGRESS_WEIGHTS: ProgressWeightConfig = {
   objectives: 0.35,
-  evidence: 0.20,
+  evidence: 0.2,
   observations: 0.15,
-  dialogue: 0.10,
-  timeline: 0.10,
+  dialogue: 0.1,
+  timeline: 0.1,
   theory: 0.05,
   notes: 0.05,
 };

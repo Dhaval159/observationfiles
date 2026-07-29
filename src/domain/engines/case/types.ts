@@ -3,9 +3,8 @@ import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
 import type { Result } from "@/domain/results/result";
 import type { ValidationResult } from "@/domain/models/validation-result";
 import type { Objective } from "@/domain/models/objective";
-import type { Requirement, RequirementSet } from "@/domain/models/unlock-condition";
-import type { CaseProgress, PlayerProgress } from "@/domain/repositories/progress-repository";
-import type { DomainEvent, EventBus } from "@/domain/events/base-event";
+import type { Requirement } from "@/domain/models/unlock-condition";
+import type { CaseProgress } from "@/domain/repositories/progress-repository";
 
 export type CaseLifecycleState =
   | "unloaded"
@@ -80,7 +79,8 @@ export interface CaseContext {
   updatedAt: DomainTimestamp;
 }
 
-export type VariableValue = boolean | number | string | Date | unknown[] | Record<string, unknown> | null;
+export type VariableValue =
+  boolean | number | string | Date | unknown[] | Record<string, unknown> | null;
 
 export interface DependencyGraph {
   readonly nodes: Map<string, DependencyNode>;

@@ -3,9 +3,9 @@ import type { Result } from "@/domain/results/result";
 import { success, failure } from "@/domain/results/result";
 import { InvalidProgressError } from "@/domain/errors/domain-error";
 import { now } from "@/domain/value-objects/timestamp";
-import { generateUuid } from "@/domain/utils/id-generator";
-import { addDiscovery, isDiscovered, touchContext } from "../context/investigation-context";
-import { sortByDateField, sortByString } from "@/domain/utils/sorting";
+
+import { addDiscovery, isDiscovered } from "../context/investigation-context";
+import { sortByDateField } from "@/domain/utils/sorting";
 
 export class DiscoveryManager {
   private _discoveryEntries: Map<string, DiscoveryEntry[]> = new Map();
@@ -46,21 +46,23 @@ export class DiscoveryManager {
     addDiscovery(ctx, key, entry.id);
 
     if (eventBus) {
-      eventBus.publish({
-        id: `DISCOVERY_${entry.id}_${Date.now()}`,
-        type: "discovery_made",
-        source: "DiscoveryManager",
-        timestamp: now(),
-        metadata: {
-          caseId: ctx.caseId,
-          playerId: ctx.playerId,
-          discoveryId: entry.id,
-          discoveryType: entry.type,
-          discoveryName: entry.name,
-          isHidden: entry.isHidden,
-          isKey: entry.isKey,
-        },
-      }).catch(() => {});
+      eventBus
+        .publish({
+          id: `DISCOVERY_${entry.id}_${Date.now()}`,
+          type: "discovery_made",
+          source: "DiscoveryManager",
+          timestamp: now(),
+          metadata: {
+            caseId: ctx.caseId,
+            playerId: ctx.playerId,
+            discoveryId: entry.id,
+            discoveryType: entry.type,
+            discoveryName: entry.name,
+            isHidden: entry.isHidden,
+            isKey: entry.isKey,
+          },
+        })
+        .catch(() => {});
     }
 
     return success(entry);
@@ -135,9 +137,7 @@ export class DiscoveryManager {
     }
 
     if (options?.tags && options.tags.length > 0) {
-      results = results.filter((d) =>
-        options.tags!.some((t) => d.tags.includes(t)),
-      );
+      results = results.filter((d) => options.tags!.some((t) => d.tags.includes(t)));
     }
 
     return results;

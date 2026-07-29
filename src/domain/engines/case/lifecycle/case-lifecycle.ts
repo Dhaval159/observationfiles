@@ -1,6 +1,12 @@
 import type { CaseLifecycleState, LifecycleEvent, CaseContext } from "../types";
-import { isValidTransition, isTerminalState, isActiveState, isTransitionState, getAvailableTransitions } from "./lifecycle-states";
-import { createDomainTimestamp, type DomainTimestamp } from "@/domain/value-objects/timestamp";
+import {
+  isValidTransition,
+  isTerminalState,
+  isActiveState,
+  isTransitionState,
+  getAvailableTransitions,
+} from "./lifecycle-states";
+import { createDomainTimestamp } from "@/domain/value-objects/timestamp";
 
 export class CaseLifecycle {
   private _currentState: CaseLifecycleState = "unloaded";
@@ -33,7 +39,7 @@ export class CaseLifecycle {
     if (!this.canTransition(to)) {
       throw new Error(
         `Invalid lifecycle transition: '${this._currentState}' -> '${to}'. ` +
-        `Available: [${getAvailableTransitions(this._currentState).join(", ")}]`,
+          `Available: [${getAvailableTransitions(this._currentState).join(", ")}]`,
       );
     }
 
@@ -82,7 +88,9 @@ export class CaseLifecycle {
   }
 
   getTotalTimeInState(state: CaseLifecycleState): number {
-    const relevantEvents = this._history.filter((e) => e.type === state || e.previousState === state);
+    const relevantEvents = this._history.filter(
+      (e) => e.type === state || e.previousState === state,
+    );
     if (relevantEvents.length < 2) return 0;
     const startEvent = relevantEvents[0];
     const endEvent = relevantEvents[relevantEvents.length - 1];

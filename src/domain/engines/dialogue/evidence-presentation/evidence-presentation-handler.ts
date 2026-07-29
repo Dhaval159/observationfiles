@@ -1,5 +1,4 @@
 import type {
-  DialogueContext,
   ConversationEntry,
   EvidencePresentationRequest,
   EvidencePresentationResult,
@@ -20,11 +19,7 @@ export class EvidencePresentationHandler {
   private _relevantMap: Map<string, Map<string, string[]>> = new Map();
   private _reactionMap: Map<string, Map<string, Record<string, string>>> = new Map();
 
-  registerRelevance(
-    treeId: string,
-    nodeId: string,
-    evidenceIds: string[],
-  ): void {
+  registerRelevance(treeId: string, nodeId: string, evidenceIds: string[]): void {
     if (!this._relevantMap.has(treeId)) {
       this._relevantMap.set(treeId, new Map());
     }
@@ -51,7 +46,7 @@ export class EvidencePresentationHandler {
     conversation: ConversationEntry,
     request: EvidencePresentationRequest,
     currentNode: DialogueNodeDefinition | null,
-    validationCtx: EvidenceValidationContext,
+    _validationCtx: EvidenceValidationContext,
   ): EvidencePresentationResult {
     const evidenceId = request.evidenceId;
     const nodeId = currentNode?.id ?? request.nodeId;

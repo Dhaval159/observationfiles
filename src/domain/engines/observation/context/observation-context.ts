@@ -1,5 +1,4 @@
 import type { ObservationContext, ObservationLifecycleState } from "../types";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
 import { now } from "@/domain/value-objects/timestamp";
 
 export function createObservationContext(
@@ -43,28 +42,19 @@ export function touchContext(ctx: ObservationContext): void {
   ctx.updatedAt = now();
 }
 
-export function isObservationDiscovered(
-  ctx: ObservationContext,
-  observationId: string,
-): boolean {
+export function isObservationDiscovered(ctx: ObservationContext, observationId: string): boolean {
   const entry = ctx.entries.get(observationId);
   if (!entry) return false;
   return entry.lifecycleState !== "hidden";
 }
 
-export function isObservationAvailable(
-  ctx: ObservationContext,
-  observationId: string,
-): boolean {
+export function isObservationAvailable(ctx: ObservationContext, observationId: string): boolean {
   const entry = ctx.entries.get(observationId);
   if (!entry) return false;
   return entry.lifecycleState === "available" || entry.lifecycleState === "inspecting";
 }
 
-export function isObservationComplete(
-  ctx: ObservationContext,
-  observationId: string,
-): boolean {
+export function isObservationComplete(ctx: ObservationContext, observationId: string): boolean {
   const entry = ctx.entries.get(observationId);
   if (!entry) return false;
   return (
@@ -87,10 +77,7 @@ export function getObservationsByState(
   return result;
 }
 
-export function getObservationsByLocation(
-  ctx: ObservationContext,
-  locationId: string,
-): string[] {
+export function getObservationsByLocation(ctx: ObservationContext, locationId: string): string[] {
   const result: string[] = [];
   for (const [id, def] of ctx.definitions) {
     if (def.locationId === locationId) {
@@ -100,10 +87,7 @@ export function getObservationsByLocation(
   return result;
 }
 
-export function getObservationsByCategory(
-  ctx: ObservationContext,
-  category: string,
-): string[] {
+export function getObservationsByCategory(ctx: ObservationContext, category: string): string[] {
   const result: string[] = [];
   for (const [id, def] of ctx.definitions) {
     if (def.category === category) {
@@ -113,10 +97,7 @@ export function getObservationsByCategory(
   return result;
 }
 
-export function getObservationsByTag(
-  ctx: ObservationContext,
-  tag: string,
-): string[] {
+export function getObservationsByTag(ctx: ObservationContext, tag: string): string[] {
   const result: string[] = [];
   for (const [id, def] of ctx.definitions) {
     if (def.tags.includes(tag)) {
@@ -126,59 +107,35 @@ export function getObservationsByTag(
   return result;
 }
 
-export function getObservationsByGroup(
-  ctx: ObservationContext,
-  groupId: string,
-): string[] {
+export function getObservationsByGroup(ctx: ObservationContext, groupId: string): string[] {
   const group = ctx.groups.get(groupId);
   if (!group) return [];
   return [...group.observationIds];
 }
 
-export function setRuntimeVariable(
-  ctx: ObservationContext,
-  key: string,
-  value: unknown,
-): void {
+export function setRuntimeVariable(ctx: ObservationContext, key: string, value: unknown): void {
   ctx.runtimeVariables.set(key, value);
   touchContext(ctx);
 }
 
-export function getRuntimeVariable(
-  ctx: ObservationContext,
-  key: string,
-): unknown {
+export function getRuntimeVariable(ctx: ObservationContext, key: string): unknown {
   return ctx.runtimeVariables.get(key);
 }
 
-export function setPlayerFlag(
-  ctx: ObservationContext,
-  key: string,
-  value: unknown,
-): void {
+export function setPlayerFlag(ctx: ObservationContext, key: string, value: unknown): void {
   ctx.playerFlags.set(key, value);
   touchContext(ctx);
 }
 
-export function getPlayerFlag(
-  ctx: ObservationContext,
-  key: string,
-): unknown {
+export function getPlayerFlag(ctx: ObservationContext, key: string): unknown {
   return ctx.playerFlags.get(key);
 }
 
-export function setCachedValue(
-  ctx: ObservationContext,
-  key: string,
-  value: unknown,
-): void {
+export function setCachedValue(ctx: ObservationContext, key: string, value: unknown): void {
   ctx.temporaryCache.set(key, value);
 }
 
-export function getCachedValue(
-  ctx: ObservationContext,
-  key: string,
-): unknown {
+export function getCachedValue(ctx: ObservationContext, key: string): unknown {
   return ctx.temporaryCache.get(key);
 }
 

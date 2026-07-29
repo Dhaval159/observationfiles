@@ -92,7 +92,7 @@ export class ContradictionEngine {
       id: "evidence_conflict",
       name: "Evidence Conflict",
       description: "Checks if a statement references evidence that contradicts the statement",
-      validate: (statementA, statementB, context) => {
+      validate: (statementA, statementB, _context) => {
         const evidenceRefsA = statementA.references.filter((r) => r.type === "evidence");
         const evidenceRefsB = statementB.references.filter((r) => r.type === "evidence");
 

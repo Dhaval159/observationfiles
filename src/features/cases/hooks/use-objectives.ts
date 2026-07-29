@@ -41,7 +41,10 @@ export function useObjectives(playerId: string | null) {
   );
 
   useEffect(() => {
-    refreshObjectives();
+    const timer = setTimeout(() => {
+      refreshObjectives();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [playerId, refreshObjectives]);
 
   const activeObjectives = objectiveStates.filter((s) => s.isActive);

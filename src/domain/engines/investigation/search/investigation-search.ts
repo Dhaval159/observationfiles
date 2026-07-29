@@ -3,7 +3,7 @@ import type { SearchResult } from "@/domain/models/search-result";
 import type { Objective } from "@/domain/models/objective";
 import { search as genericSearch, rankSearchResults } from "@/domain/utils/searching";
 import { applyFilters, type FilterCriteria } from "@/domain/utils/filtering";
-import { sortByScore, sortByDateField, sortByKey, sortByString } from "@/domain/utils/sorting";
+import { sortByKey } from "@/domain/utils/sorting";
 
 export class InvestigationSearch {
   searchDiscoveries(
@@ -24,10 +24,7 @@ export class InvestigationSearch {
     }) as Objective[];
   }
 
-  searchActivities(
-    ctx: InvestigationContext,
-    query: string,
-  ): ActivityEntry[] {
+  searchActivities(ctx: InvestigationContext, query: string): ActivityEntry[] {
     return genericSearch(ctx.activityHistory, {
       query,
       fields: ["actionType", "source", "targetId"],
@@ -64,18 +61,11 @@ export class InvestigationSearch {
     return rankSearchResults(items, query, fields);
   }
 
-  applyFilters<T extends Record<string, unknown>>(
-    items: T[],
-    filters: FilterCriteria[],
-  ): T[] {
+  applyFilters<T extends Record<string, unknown>>(items: T[], filters: FilterCriteria[]): T[] {
     return applyFilters(items, filters);
   }
 
-  sortResults<T>(
-    items: T[],
-    sortBy: string,
-    direction: "asc" | "desc" = "asc",
-  ): T[] {
+  sortResults<T>(items: T[], sortBy: string, direction: "asc" | "desc" = "asc"): T[] {
     return sortByKey(items, sortBy as keyof T, direction);
   }
 

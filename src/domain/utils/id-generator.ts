@@ -1,4 +1,4 @@
-import { createDomainId, type DomainId } from "../value-objects/id";
+import { createDomainId } from "../value-objects/id";
 
 export function generateId(prefix?: string): string {
   return createDomainId(prefix).toString();

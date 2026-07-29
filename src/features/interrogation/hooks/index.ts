@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { InterrogationEngine } from "../services";
 import type { ChoiceEvaluation, NodeEvaluation } from "../types";
 import type { DialogueNode, NPCInterrogationState } from "@/types/interrogation";
@@ -12,18 +12,12 @@ const noopEmitter: EventEmitter = {
   listenerCount: () => 0,
 };
 
-let engineInstance: InterrogationEngine | null = null;
-
 export function useInterrogationEngine(
   emitter: EventEmitter,
   evidenceInventory?: Set<string>,
 ): InterrogationEngine {
-  return useMemo(() => {
-    if (!engineInstance) {
-      engineInstance = new InterrogationEngine(emitter, evidenceInventory);
-    }
-    return engineInstance;
-  }, [emitter, evidenceInventory]);
+  const [engine] = useState(() => new InterrogationEngine(emitter, evidenceInventory));
+  return engine;
 }
 
 export function useInterrogation(interrogationId: string): {
@@ -53,13 +47,14 @@ export function useCurrentNode(): {
   node: DialogueNode | null;
   nodeEvaluation: NodeEvaluation | null;
 } {
-  const [node, setNode] = useState<DialogueNode | null>(null);
-
   const engine = useInterrogationEngine(noopEmitter);
+  const [node, setNode] = useState<DialogueNode | null>(() => engine.getCurrentNode());
 
   useEffect(() => {
-    const current = engine.getCurrentNode();
-    setNode(current);
+    const timer = setTimeout(() => {
+      setNode(engine.getCurrentNode());
+    }, 0);
+    return () => clearTimeout(timer);
   }, [engine]);
 
   return { node, nodeEvaluation: null };

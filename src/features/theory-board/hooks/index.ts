@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { EventEmitter } from "@/types/engine";
 import type {
   TheoryNode,
@@ -38,14 +38,8 @@ function createEventEmitter(): EventEmitter {
 }
 
 export function useTheoryBoardEngine(): TheoryBoardEngine {
-  const emitterRef = useRef<EventEmitter>(createEventEmitter());
-  const engineRef = useRef<TheoryBoardEngine | null>(null);
-
-  if (!engineRef.current) {
-    engineRef.current = new TheoryBoardEngine(emitterRef.current);
-  }
-
-  return engineRef.current;
+  const [engine] = useState(() => new TheoryBoardEngine(createEventEmitter()));
+  return engine;
 }
 
 export function useTheoryBoard(caseId: string): {

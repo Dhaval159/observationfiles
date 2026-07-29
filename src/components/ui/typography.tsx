@@ -1,76 +1,127 @@
-import type { ReactNode, HTMLAttributes } from "react"
+import type { ReactNode, HTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
 
-interface H1Props extends HTMLAttributes<HTMLHeadingElement> {
-  children: ReactNode
+type TextColor = "primary" | "secondary" | "muted" | "accent" | "success" | "warning" | "danger";
+
+interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
+  children: ReactNode;
+  color?: TextColor;
 }
 
-function H1({ children, ...props }: H1Props) {
-  return <h1 {...props}>{children}</h1>
+interface TextProps extends HTMLAttributes<HTMLElement> {
+  children: ReactNode;
+  color?: TextColor;
 }
 
-interface H2Props extends HTMLAttributes<HTMLHeadingElement> {
-  children: ReactNode
+const colorClasses: Record<TextColor, string> = {
+  primary: "text-foreground",
+  secondary: "text-secondary-foreground",
+  muted: "text-muted",
+  accent: "text-accent",
+  success: "text-success",
+  warning: "text-warning",
+  danger: "text-danger",
+};
+
+function H1({ children, className, color = "primary", ...props }: HeadingProps) {
+  return (
+    <h1
+      className={cn("text-3xl font-semibold tracking-tight", colorClasses[color], className)}
+      {...props}
+    >
+      {children}
+    </h1>
+  );
 }
 
-function H2({ children, ...props }: H2Props) {
-  return <h2 {...props}>{children}</h2>
+function H2({ children, className, color = "primary", ...props }: HeadingProps) {
+  return (
+    <h2
+      className={cn("text-2xl font-semibold tracking-tight", colorClasses[color], className)}
+      {...props}
+    >
+      {children}
+    </h2>
+  );
 }
 
-interface H3Props extends HTMLAttributes<HTMLHeadingElement> {
-  children: ReactNode
+function H3({ children, className, color = "primary", ...props }: HeadingProps) {
+  return (
+    <h3
+      className={cn("text-xl font-semibold tracking-tight", colorClasses[color], className)}
+      {...props}
+    >
+      {children}
+    </h3>
+  );
 }
 
-function H3({ children, ...props }: H3Props) {
-  return <h3 {...props}>{children}</h3>
+function H4({ children, className, color = "primary", ...props }: HeadingProps) {
+  return (
+    <h4 className={cn("text-lg font-medium", colorClasses[color], className)} {...props}>
+      {children}
+    </h4>
+  );
 }
 
-interface H4Props extends HTMLAttributes<HTMLHeadingElement> {
-  children: ReactNode
+function H5({ children, className, color = "primary", ...props }: HeadingProps) {
+  return (
+    <h5 className={cn("text-base font-medium", colorClasses[color], className)} {...props}>
+      {children}
+    </h5>
+  );
 }
 
-function H4({ children, ...props }: H4Props) {
-  return <h4 {...props}>{children}</h4>
+function H6({ children, className, color = "primary", ...props }: HeadingProps) {
+  return (
+    <h6 className={cn("text-sm font-medium", colorClasses[color], className)} {...props}>
+      {children}
+    </h6>
+  );
 }
 
-interface H5Props extends HTMLAttributes<HTMLHeadingElement> {
-  children: ReactNode
+function P({ children, className, color = "primary", ...props }: TextProps) {
+  return (
+    <p className={cn("text-base leading-relaxed", colorClasses[color], className)} {...props}>
+      {children}
+    </p>
+  );
 }
 
-function H5({ children, ...props }: H5Props) {
-  return <h5 {...props}>{children}</h5>
+function Span({ children, className, color = "primary", ...props }: TextProps) {
+  return (
+    <span className={cn(colorClasses[color], className)} {...props}>
+      {children}
+    </span>
+  );
 }
 
-interface H6Props extends HTMLAttributes<HTMLHeadingElement> {
-  children: ReactNode
+function Small({ children, className, color = "muted", ...props }: TextProps) {
+  return (
+    <small className={cn("text-muted text-sm", colorClasses[color], className)} {...props}>
+      {children}
+    </small>
+  );
 }
 
-function H6({ children, ...props }: H6Props) {
-  return <h6 {...props}>{children}</h6>
+function Caption({ children, className, color = "muted", ...props }: TextProps) {
+  return (
+    <span className={cn("text-muted text-xs", colorClasses[color], className)} {...props}>
+      {children}
+    </span>
+  );
 }
 
-interface PProps extends HTMLAttributes<HTMLParagraphElement> {
-  children: ReactNode
+function Code({ children, className, ...props }: TextProps) {
+  return (
+    <code
+      className={cn("bg-surface text-accent rounded-md px-1.5 py-0.5 font-mono text-sm", className)}
+      {...props}
+    >
+      {children}
+    </code>
+  );
 }
 
-function P({ children, ...props }: PProps) {
-  return <p {...props}>{children}</p>
-}
-
-interface SpanProps extends HTMLAttributes<HTMLSpanElement> {
-  children: ReactNode
-}
-
-function Span({ children, ...props }: SpanProps) {
-  return <span {...props}>{children}</span>
-}
-
-interface SmallProps extends HTMLAttributes<HTMLElement> {
-  children: ReactNode
-}
-
-function Small({ children, ...props }: SmallProps) {
-  return <small {...props}>{children}</small>
-}
-
-export { H1, H2, H3, H4, H5, H6, P, Span, Small }
-export type { H1Props, H2Props, H3Props, H4Props, H5Props, H6Props, PProps, SpanProps, SmallProps }
+export { H1, H2, H3, H4, H5, H6, P, Span, Small, Caption, Code };
+export type { HeadingProps, TextProps, TextColor };

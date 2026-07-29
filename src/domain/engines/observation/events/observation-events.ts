@@ -1,5 +1,4 @@
 import type { DomainEvent } from "@/domain/events/base-event";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
 import type { ObservationLifecycleState } from "../types";
 
 export interface ObservationAvailableEvent extends DomainEvent {

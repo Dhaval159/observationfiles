@@ -37,7 +37,10 @@ export function useCurrentLocation(playerId: string | null) {
   );
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   return { locationId, visitedLocations, isLoading, refresh, moveTo };

@@ -1,4 +1,4 @@
-import type { CaseLifecycleState, LifecycleTransition, CaseContext } from "../types";
+import type { CaseLifecycleState } from "../types";
 
 export const LIFECYCLE_STATES: readonly CaseLifecycleState[] = [
   "unloaded",
@@ -17,22 +17,23 @@ export const LIFECYCLE_STATES: readonly CaseLifecycleState[] = [
   "error",
 ] as const;
 
-export const VALID_TRANSITIONS: ReadonlyMap<CaseLifecycleState, readonly CaseLifecycleState[]> = new Map([
-  ["unloaded", ["loading"]],
-  ["loading", ["validating", "error", "unloaded"]],
-  ["validating", ["initializing", "error", "unloaded"]],
-  ["initializing", ["ready", "error", "unloaded"]],
-  ["ready", ["running", "unloading", "error"]],
-  ["running", ["paused", "completing", "failing", "error"]],
-  ["paused", ["running", "unloading", "error"]],
-  ["completing", ["completed", "error"]],
-  ["completed", ["resetting", "unloading"]],
-  ["failing", ["failed", "error"]],
-  ["failed", ["resetting", "unloading"]],
-  ["resetting", ["unloaded", "error"]],
-  ["unloading", ["unloaded", "error"]],
-  ["error", ["resetting", "unloading"]],
-]);
+export const VALID_TRANSITIONS: ReadonlyMap<CaseLifecycleState, readonly CaseLifecycleState[]> =
+  new Map([
+    ["unloaded", ["loading"]],
+    ["loading", ["validating", "error", "unloaded"]],
+    ["validating", ["initializing", "error", "unloaded"]],
+    ["initializing", ["ready", "error", "unloaded"]],
+    ["ready", ["running", "unloading", "error"]],
+    ["running", ["paused", "completing", "failing", "error"]],
+    ["paused", ["running", "unloading", "error"]],
+    ["completing", ["completed", "error"]],
+    ["completed", ["resetting", "unloading"]],
+    ["failing", ["failed", "error"]],
+    ["failed", ["resetting", "unloading"]],
+    ["resetting", ["unloaded", "error"]],
+    ["unloading", ["unloaded", "error"]],
+    ["error", ["resetting", "unloading"]],
+  ]);
 
 export const TERMINAL_STATES: readonly CaseLifecycleState[] = [
   "completed",
@@ -40,11 +41,7 @@ export const TERMINAL_STATES: readonly CaseLifecycleState[] = [
   "unloaded",
 ] as const;
 
-export const ACTIVE_STATES: readonly CaseLifecycleState[] = [
-  "ready",
-  "running",
-  "paused",
-] as const;
+export const ACTIVE_STATES: readonly CaseLifecycleState[] = ["ready", "running", "paused"] as const;
 
 export const TRANSITION_STATES: readonly CaseLifecycleState[] = [
   "loading",

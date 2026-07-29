@@ -75,7 +75,7 @@ export class DialogueCache {
 
   syncFromContext(ctx: DialogueContext): void {
     this.clear();
-    for (const [id, tree] of ctx.treeDefinitions) {
+    for (const [, tree] of ctx.treeDefinitions) {
       this.setTree(tree);
     }
     for (const [id, conv] of ctx.conversations) {

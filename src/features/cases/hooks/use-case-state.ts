@@ -2,14 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getCaseEngine } from "../services/case-engine-service";
-import { useEngineCaseStore, type EngineLifecycleState } from "@/stores/engine-case-store";
+import type { EngineLifecycleState } from "@/stores/engine-case-store";
 
 export function useCaseState(playerId: string | null) {
   const [lifecycleState, setLocalLifecycleState] = useState<string>("unloaded");
   const [isActive, setIsActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const storeState = useEngineCaseStore.getState().lifecycleState;
 
   const refreshState = useCallback(() => {
     if (!playerId) return;
@@ -60,7 +58,10 @@ export function useCaseState(playerId: string | null) {
   }, [playerId, refreshState]);
 
   useEffect(() => {
-    refreshState();
+    const timer = setTimeout(() => {
+      refreshState();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [playerId, refreshState]);
 
   return {

@@ -1,4 +1,15 @@
-export type FilterOperator = "equals" | "not_equals" | "greater_than" | "less_than" | "contains" | "starts_with" | "ends_with" | "exists" | "in" | "between" | "regex";
+export type FilterOperator =
+  | "equals"
+  | "not_equals"
+  | "greater_than"
+  | "less_than"
+  | "contains"
+  | "starts_with"
+  | "ends_with"
+  | "exists"
+  | "in"
+  | "between"
+  | "regex";
 
 export interface FilterCriteria {
   field: string;
@@ -9,9 +20,7 @@ export interface FilterCriteria {
 export function applyFilters<T>(items: T[], filters: FilterCriteria[]): T[] {
   if (!filters || filters.length === 0) return items;
 
-  return items.filter((item) =>
-    filters.every((filter) => evaluateFilter(item, filter)),
-  );
+  return items.filter((item) => filters.every((filter) => evaluateFilter(item, filter)));
 }
 
 function evaluateFilter<T>(item: T, filter: FilterCriteria): boolean {
@@ -23,9 +32,17 @@ function evaluateFilter<T>(item: T, filter: FilterCriteria): boolean {
     case "not_equals":
       return fieldValue !== filter.value;
     case "greater_than":
-      return typeof fieldValue === "number" && typeof filter.value === "number" && fieldValue > filter.value;
+      return (
+        typeof fieldValue === "number" &&
+        typeof filter.value === "number" &&
+        fieldValue > filter.value
+      );
     case "less_than":
-      return typeof fieldValue === "number" && typeof filter.value === "number" && fieldValue < filter.value;
+      return (
+        typeof fieldValue === "number" &&
+        typeof filter.value === "number" &&
+        fieldValue < filter.value
+      );
     case "contains":
       if (typeof fieldValue === "string" && typeof filter.value === "string") {
         return fieldValue.toLowerCase().includes(filter.value.toLowerCase());
@@ -35,16 +52,32 @@ function evaluateFilter<T>(item: T, filter: FilterCriteria): boolean {
       }
       return false;
     case "starts_with":
-      return typeof fieldValue === "string" && typeof filter.value === "string" && fieldValue.toLowerCase().startsWith(filter.value.toLowerCase());
+      return (
+        typeof fieldValue === "string" &&
+        typeof filter.value === "string" &&
+        fieldValue.toLowerCase().startsWith(filter.value.toLowerCase())
+      );
     case "ends_with":
-      return typeof fieldValue === "string" && typeof filter.value === "string" && fieldValue.toLowerCase().endsWith(filter.value.toLowerCase());
+      return (
+        typeof fieldValue === "string" &&
+        typeof filter.value === "string" &&
+        fieldValue.toLowerCase().endsWith(filter.value.toLowerCase())
+      );
     case "exists":
-      return filter.value ? fieldValue !== undefined && fieldValue !== null : fieldValue === undefined || fieldValue === null;
+      return filter.value
+        ? fieldValue !== undefined && fieldValue !== null
+        : fieldValue === undefined || fieldValue === null;
     case "in":
       return Array.isArray(filter.value) && filter.value.includes(fieldValue);
     case "between":
-      if (typeof fieldValue === "number" && Array.isArray(filter.value) && filter.value.length === 2) {
-        return fieldValue >= (filter.value[0] as number) && fieldValue <= (filter.value[1] as number);
+      if (
+        typeof fieldValue === "number" &&
+        Array.isArray(filter.value) &&
+        filter.value.length === 2
+      ) {
+        return (
+          fieldValue >= (filter.value[0] as number) && fieldValue <= (filter.value[1] as number)
+        );
       }
       return false;
     case "regex":
@@ -75,11 +108,18 @@ function getFieldValue<T>(item: T, field: string): unknown {
   return current;
 }
 
-export function createFilter(field: string, operator: FilterOperator, value: unknown): FilterCriteria {
+export function createFilter(
+  field: string,
+  operator: FilterOperator,
+  value: unknown,
+): FilterCriteria {
   return { field, operator, value };
 }
 
-export function combineFilters(filterGroups: FilterCriteria[][], combinator: "and" | "or" = "and"): FilterCriteria[][] {
+export function combineFilters(
+  filterGroups: FilterCriteria[][],
+  _combinator: "and" | "or" = "and",
+): FilterCriteria[][] {
   return filterGroups;
 }
 

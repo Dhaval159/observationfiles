@@ -5,24 +5,14 @@ import type {
   ObservationLifecycleState,
   ObservationLifecycleSnapshot,
   ObservationGroupDefinition,
-  ObservationDependencyDefinition,
   ObservationFilterCriteria,
   ObservationSearchCriteria,
   ObservationSortOption,
   ObservationValidationResult,
-  ObservationDiscoveryEntry,
-  ObservationEngineConfig,
 } from "../types";
 import type { Result } from "@/domain/results/result";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
-import { success, failure, tryCatch } from "@/domain/results/result";
-import {
-  ObservationNotFoundError,
-  ObservationAlreadyMadeError,
-  RequirementNotMetError,
-  ValidationError,
-  EngineError,
-} from "@/domain/errors/domain-error";
+import { success, failure } from "@/domain/results/result";
+import { RequirementNotMetError, ValidationError, EngineError } from "@/domain/errors/domain-error";
 import { ObservationLifecycle } from "../lifecycle/observation-lifecycle";
 import { isObservableState, isPositiveOutcome } from "../lifecycle/observation-lifecycle-states";
 import { createObservationContext, touchContext } from "../context/observation-context";
@@ -36,7 +26,10 @@ import { ObservationFilter } from "../filter/observation-filter";
 import { ObservationSort } from "../sort/observation-sort";
 import { ObservationValidator } from "../validation/observation-validator";
 import { InMemoryObservationRepository } from "../repository/observation-repository";
-import { buildRequirementContext, evaluateRequirements } from "../requirements/requirement-evaluator";
+import {
+  buildRequirementContext,
+  evaluateRequirements,
+} from "../requirements/requirement-evaluator";
 import { generateUuid } from "@/domain/utils/id-generator";
 import { now } from "@/domain/value-objects/timestamp";
 import * as O from "../types";
@@ -107,9 +100,7 @@ export class ObservationManager {
     return this._validator;
   }
 
-  setEventBus(
-    bus: { publish: (event: unknown) => Promise<void> } | null,
-  ): void {
+  setEventBus(bus: { publish: (event: unknown) => Promise<void> } | null): void {
     this._eventBus = bus;
   }
 
@@ -141,10 +132,7 @@ export class ObservationManager {
       return success(ctx.entries.get(definition.id)!);
     }
 
-    const allDefIds = new Set([
-      ...Array.from(ctx.definitions.keys()),
-      definition.id,
-    ]);
+    const allDefIds = new Set([...Array.from(ctx.definitions.keys()), definition.id]);
 
     for (const dep of definition.dependencyDefs) {
       const depValidation = this._validator.validateDependency(dep, allDefIds);
@@ -164,11 +152,7 @@ export class ObservationManager {
       .filter((g) => g.observationIds.includes(definition.id))
       .map((g) => g.id);
 
-    const entry = this._repository.createEntry(
-      definition,
-      definition.dependencyDefs,
-      groupIds,
-    );
+    const entry = this._repository.createEntry(definition, definition.dependencyDefs, groupIds);
 
     this._repository.saveEntry(ctx, entry);
 
@@ -191,7 +175,13 @@ export class ObservationManager {
       );
 
       if (reqResult.isSatisfied) {
-        this._transitionEntry(ctx, entry, "available", "registerObservation", "Hidden requirements satisfied");
+        this._transitionEntry(
+          ctx,
+          entry,
+          "available",
+          "registerObservation",
+          "Hidden requirements satisfied",
+        );
       }
     }
 
@@ -318,7 +308,12 @@ export class ObservationManager {
     this._repository.saveEntry(ctx, newEntry);
 
     if (this._config.enableConfidenceTracking) {
-      this._confidenceManager.setConfidence(observationId, 1.0, "verification", "Observation verified");
+      this._confidenceManager.setConfidence(
+        observationId,
+        1.0,
+        "verification",
+        "Observation verified",
+      );
     }
 
     this._notifyObservationVerified(ctx, newEntry);
@@ -386,9 +381,7 @@ export class ObservationManager {
       entry,
       "available",
       "unlock",
-      sourceObservationId
-        ? `Unlocked by observing '${sourceObservationId}'`
-        : "Unlocked",
+      sourceObservationId ? `Unlocked by observing '${sourceObservationId}'` : "Unlocked",
     );
 
     const newEntry: ObservationEntry = {
@@ -414,23 +407,13 @@ export class ObservationManager {
     return success(newEntry);
   }
 
-  lock(
-    ctx: ObservationContext,
-    observationId: string,
-    reason?: string,
-  ): Result<ObservationEntry> {
+  lock(ctx: ObservationContext, observationId: string, reason?: string): Result<ObservationEntry> {
     const entryResult = this._repository.getEntry(ctx, observationId);
     if (!entryResult.success) return entryResult;
 
     const entry = entryResult.data;
 
-    const updatedEntry = this._transitionEntry(
-      ctx,
-      entry,
-      "locked",
-      "lock",
-      reason ?? "Locked",
-    );
+    const updatedEntry = this._transitionEntry(ctx, entry, "locked", "lock", reason ?? "Locked");
 
     const newEntry: ObservationEntry = {
       ...updatedEntry,
@@ -449,23 +432,13 @@ export class ObservationManager {
     return success(newEntry);
   }
 
-  hide(
-    ctx: ObservationContext,
-    observationId: string,
-    reason?: string,
-  ): Result<ObservationEntry> {
+  hide(ctx: ObservationContext, observationId: string, reason?: string): Result<ObservationEntry> {
     const entryResult = this._repository.getEntry(ctx, observationId);
     if (!entryResult.success) return entryResult;
 
     const entry = entryResult.data;
 
-    const updatedEntry = this._transitionEntry(
-      ctx,
-      entry,
-      "hidden",
-      "hide",
-      reason ?? "Hidden",
-    );
+    const updatedEntry = this._transitionEntry(ctx, entry, "hidden", "hide", reason ?? "Hidden");
     this._repository.saveEntry(ctx, updatedEntry);
 
     this._notifyObservationHidden(ctx, updatedEntry, reason);
@@ -474,10 +447,7 @@ export class ObservationManager {
     return success(updatedEntry);
   }
 
-  reobserve(
-    ctx: ObservationContext,
-    observationId: string,
-  ): Result<ObservationEntry> {
+  reobserve(ctx: ObservationContext, observationId: string): Result<ObservationEntry> {
     if (!this._config.allowReobservation) {
       return failure(
         new EngineError("observation-engine", "Reobservation is disabled in engine configuration"),
@@ -514,10 +484,7 @@ export class ObservationManager {
     return success(newEntry);
   }
 
-  getObservation(
-    ctx: ObservationContext,
-    observationId: string,
-  ): Result<ObservationEntry> {
+  getObservation(ctx: ObservationContext, observationId: string): Result<ObservationEntry> {
     return this._repository.getEntry(ctx, observationId);
   }
 
@@ -546,26 +513,17 @@ export class ObservationManager {
     return this._cache.getByState(state);
   }
 
-  search(
-    ctx: ObservationContext,
-    criteria: ObservationSearchCriteria,
-  ): ObservationEntry[] {
+  search(ctx: ObservationContext, criteria: ObservationSearchCriteria): ObservationEntry[] {
     const all = this.getAll(ctx);
     return this._searchEngine.search(all, criteria);
   }
 
-  filter(
-    ctx: ObservationContext,
-    criteria: ObservationFilterCriteria,
-  ): ObservationEntry[] {
+  filter(ctx: ObservationContext, criteria: ObservationFilterCriteria): ObservationEntry[] {
     const all = this.getAll(ctx);
     return this._filterEngine.filter(all, criteria);
   }
 
-  sort(
-    ctx: ObservationContext,
-    options: ObservationSortOption[],
-  ): ObservationEntry[] {
+  sort(ctx: ObservationContext, options: ObservationSortOption[]): ObservationEntry[] {
     const all = this.getAll(ctx);
     return this._sortEngine.sort(all, options);
   }
@@ -574,18 +532,12 @@ export class ObservationManager {
     return this._validator.validateAll(ctx);
   }
 
-  registerGroup(
-    ctx: ObservationContext,
-    group: ObservationGroupDefinition,
-  ): void {
+  registerGroup(ctx: ObservationContext, group: ObservationGroupDefinition): void {
     this._groupManager.registerGroup(group);
     this._groupManager.syncToContext(ctx);
   }
 
-  registerGroups(
-    ctx: ObservationContext,
-    groups: ObservationGroupDefinition[],
-  ): void {
+  registerGroups(ctx: ObservationContext, groups: ObservationGroupDefinition[]): void {
     for (const group of groups) {
       this._groupManager.registerGroup(group);
     }
@@ -705,19 +657,21 @@ export class ObservationManager {
   ): Promise<void> {
     if (!this._config.enableEventSystem || !this._eventBus) return;
 
-    await this._eventBus.publish({
-      id: generateUuid(),
-      type: "OBSERVATION_COMPLETED",
-      timestamp: now(),
-      source: "ObservationManager",
-      caseId: ctx.caseId,
-      observationId: entry.id,
-      objectId: entry.definition.sourceObjectId,
-      locationId: entry.definition.locationId,
-      playerId: ctx.playerId,
-      confidenceGain: entry.definition.confidenceGain,
-      newState: entry.lifecycleState,
-    }).catch(() => {});
+    await this._eventBus
+      .publish({
+        id: generateUuid(),
+        type: "OBSERVATION_COMPLETED",
+        timestamp: now(),
+        source: "ObservationManager",
+        caseId: ctx.caseId,
+        observationId: entry.id,
+        objectId: entry.definition.sourceObjectId,
+        locationId: entry.definition.locationId,
+        playerId: ctx.playerId,
+        confidenceGain: entry.definition.confidenceGain,
+        newState: entry.lifecycleState,
+      })
+      .catch(() => {});
   }
 
   private async _notifyObservationVerified(
@@ -726,16 +680,18 @@ export class ObservationManager {
   ): Promise<void> {
     if (!this._config.enableEventSystem || !this._eventBus) return;
 
-    await this._eventBus.publish({
-      id: generateUuid(),
-      type: "OBSERVATION_VERIFIED",
-      timestamp: now(),
-      source: "ObservationManager",
-      caseId: ctx.caseId,
-      observationId: entry.id,
-      playerId: ctx.playerId,
-      confidence: entry.confidence.value,
-    }).catch(() => {});
+    await this._eventBus
+      .publish({
+        id: generateUuid(),
+        type: "OBSERVATION_VERIFIED",
+        timestamp: now(),
+        source: "ObservationManager",
+        caseId: ctx.caseId,
+        observationId: entry.id,
+        playerId: ctx.playerId,
+        confidence: entry.confidence.value,
+      })
+      .catch(() => {});
   }
 
   private async _notifyObservationRejected(
@@ -745,16 +701,18 @@ export class ObservationManager {
   ): Promise<void> {
     if (!this._config.enableEventSystem || !this._eventBus) return;
 
-    await this._eventBus.publish({
-      id: generateUuid(),
-      type: "OBSERVATION_REJECTED",
-      timestamp: now(),
-      source: "ObservationManager",
-      caseId: ctx.caseId,
-      observationId: entry.id,
-      playerId: ctx.playerId,
-      reason,
-    }).catch(() => {});
+    await this._eventBus
+      .publish({
+        id: generateUuid(),
+        type: "OBSERVATION_REJECTED",
+        timestamp: now(),
+        source: "ObservationManager",
+        caseId: ctx.caseId,
+        observationId: entry.id,
+        playerId: ctx.playerId,
+        reason,
+      })
+      .catch(() => {});
   }
 
   private async _notifyObservationUnlocked(
@@ -764,16 +722,18 @@ export class ObservationManager {
   ): Promise<void> {
     if (!this._config.enableEventSystem || !this._eventBus) return;
 
-    await this._eventBus.publish({
-      id: generateUuid(),
-      type: "OBSERVATION_UNLOCKED",
-      timestamp: now(),
-      source: "ObservationManager",
-      caseId: ctx.caseId,
-      observationId: entry.id,
-      playerId: ctx.playerId,
-      sourceObservationId,
-    }).catch(() => {});
+    await this._eventBus
+      .publish({
+        id: generateUuid(),
+        type: "OBSERVATION_UNLOCKED",
+        timestamp: now(),
+        source: "ObservationManager",
+        caseId: ctx.caseId,
+        observationId: entry.id,
+        playerId: ctx.playerId,
+        sourceObservationId,
+      })
+      .catch(() => {});
   }
 
   private async _notifyObservationLocked(
@@ -783,16 +743,18 @@ export class ObservationManager {
   ): Promise<void> {
     if (!this._config.enableEventSystem || !this._eventBus) return;
 
-    await this._eventBus.publish({
-      id: generateUuid(),
-      type: "OBSERVATION_LOCKED",
-      timestamp: now(),
-      source: "ObservationManager",
-      caseId: ctx.caseId,
-      observationId: entry.id,
-      playerId: ctx.playerId,
-      reason,
-    }).catch(() => {});
+    await this._eventBus
+      .publish({
+        id: generateUuid(),
+        type: "OBSERVATION_LOCKED",
+        timestamp: now(),
+        source: "ObservationManager",
+        caseId: ctx.caseId,
+        observationId: entry.id,
+        playerId: ctx.playerId,
+        reason,
+      })
+      .catch(() => {});
   }
 
   private async _notifyObservationHidden(
@@ -802,15 +764,17 @@ export class ObservationManager {
   ): Promise<void> {
     if (!this._config.enableEventSystem || !this._eventBus) return;
 
-    await this._eventBus.publish({
-      id: generateUuid(),
-      type: "OBSERVATION_HIDDEN",
-      timestamp: now(),
-      source: "ObservationManager",
-      caseId: ctx.caseId,
-      observationId: entry.id,
-      playerId: ctx.playerId,
-      reason,
-    }).catch(() => {});
+    await this._eventBus
+      .publish({
+        id: generateUuid(),
+        type: "OBSERVATION_HIDDEN",
+        timestamp: now(),
+        source: "ObservationManager",
+        caseId: ctx.caseId,
+        observationId: entry.id,
+        playerId: ctx.playerId,
+        reason,
+      })
+      .catch(() => {});
   }
 }

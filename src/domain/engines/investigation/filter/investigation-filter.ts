@@ -1,4 +1,10 @@
-import type { InvestigationContext, DiscoveryEntry, ActivityEntry, LogEntry, InvestigationNotification, DiscoveryType } from "../types";
+import type {
+  DiscoveryEntry,
+  ActivityEntry,
+  LogEntry,
+  InvestigationNotification,
+  DiscoveryType,
+} from "../types";
 import type { InvestigationSortOption } from "../types";
 
 export class InvestigationFilter {
@@ -43,17 +49,13 @@ export class InvestigationFilter {
     }
 
     if (options.tags && options.tags.length > 0) {
-      results = results.filter((d) =>
-        options.tags!.some((t) => d.tags.includes(t)),
-      );
+      results = results.filter((d) => options.tags!.some((t) => d.tags.includes(t)));
     }
 
     if (options.searchQuery) {
       const q = options.searchQuery.toLowerCase();
       results = results.filter(
-        (d) =>
-          d.name.toLowerCase().includes(q) ||
-          d.description.toLowerCase().includes(q),
+        (d) => d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q),
       );
     }
 
@@ -105,8 +107,7 @@ export class InvestigationFilter {
       const q = options.searchQuery.toLowerCase();
       results = results.filter(
         (a) =>
-          a.actionType.toLowerCase().includes(q) ||
-          (a.targetId ?? "").toLowerCase().includes(q),
+          a.actionType.toLowerCase().includes(q) || (a.targetId ?? "").toLowerCase().includes(q),
       );
     }
 
@@ -181,20 +182,12 @@ export class InvestigationFilter {
     return results;
   }
 
-  filterByTags<T extends { tags?: string[] }>(
-    items: T[],
-    tags: string[],
-  ): T[] {
+  filterByTags<T extends { tags?: string[] }>(items: T[], tags: string[]): T[] {
     if (!tags || tags.length === 0) return items;
-    return items.filter(
-      (item) => item.tags?.some((t) => tags.includes(t)) ?? false,
-    );
+    return items.filter((item) => item.tags?.some((t) => tags.includes(t)) ?? false);
   }
 
-  filterByStatus<T extends { status?: string }>(
-    items: T[],
-    statuses: string[],
-  ): T[] {
+  filterByStatus<T extends { status?: string }>(items: T[], statuses: string[]): T[] {
     if (!statuses || statuses.length === 0) return items;
     return items.filter((item) => item.status && statuses.includes(item.status));
   }

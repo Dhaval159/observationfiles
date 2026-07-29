@@ -11,7 +11,7 @@ import type { CaseValidationResult } from "./types";
 import type { DependencyGraph } from "./types";
 import type { CaseContext } from "./types";
 import { success, failure } from "@/domain/results/result";
-import { CaseNotFoundError, CaseLockedError, InvalidProgressError, EngineError } from "@/domain/errors/domain-error";
+import { InvalidProgressError, EngineError } from "@/domain/errors/domain-error";
 import { CaseLifecycle } from "./lifecycle/case-lifecycle";
 import { CompositeCaseLoader } from "./loader/composite-case-loader";
 import { InMemoryCaseRegistry } from "./registry/case-registry";
@@ -155,13 +155,16 @@ export class CaseEngine implements ICaseEngine {
     return success(this._validator.validateDefinition(defResult.data));
   }
 
-  async loadCase(caseId: string, playerId: string, difficulty?: CaseDifficulty): Promise<Result<FullCase>> {
+  async loadCase(
+    caseId: string,
+    playerId: string,
+    _difficulty?: CaseDifficulty,
+  ): Promise<Result<FullCase>> {
     const ctxResult = await this._manager.openCase(caseId, playerId);
     if (!ctxResult.success) return failure(ctxResult.error);
 
     const context = ctxResult.data;
 
-    const def = context.caseDefinition ?? context.activeCase;
     if (context.caseDefinition && this._config.enableDependencyGraph) {
       const graph = createDependencyGraph();
       buildGraphFromCaseDefinition(graph, context.caseDefinition);
@@ -313,9 +316,13 @@ export class CaseEngine implements ICaseEngine {
       id: `${playerId}_${caseId}`,
       playerId,
       caseId,
-      status: (context.lifecycleState === "completed" ? "completed" :
-               context.lifecycleState === "failed" ? "failed" :
-               this._lifecycle.isActive() ? "in-progress" : "available") as CaseProgress["status"],
+      status: (context.lifecycleState === "completed"
+        ? "completed"
+        : context.lifecycleState === "failed"
+          ? "failed"
+          : this._lifecycle.isActive()
+            ? "in-progress"
+            : "available") as CaseProgress["status"],
       score: 0,
       maxScore: 0,
       timeSpentSeconds: context.session.playTimeSeconds,
@@ -333,7 +340,7 @@ export class CaseEngine implements ICaseEngine {
     return success(progress);
   }
 
-  async isCaseUnlocked(caseId: string, playerId: string): Promise<Result<boolean>> {
+  async isCaseUnlocked(caseId: string, _playerId: string): Promise<Result<boolean>> {
     const defResult = this._registry.get(caseId);
     if (!defResult.success) return failure(defResult.error);
 
@@ -358,7 +365,10 @@ export class CaseEngine implements ICaseEngine {
     return success(requirements);
   }
 
-  async getCaseStatistics(caseId: string, playerId: string): Promise<Result<Record<string, number>>> {
+  async getCaseStatistics(
+    caseId: string,
+    playerId: string,
+  ): Promise<Result<Record<string, number>>> {
     const ctxResult = this._manager.getContext(playerId);
     if (!ctxResult.success) {
       return success({

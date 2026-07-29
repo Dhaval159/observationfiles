@@ -1,6 +1,5 @@
 import type {
   DialogueCondition,
-  DialogueChoice,
   DialogueAction,
   DialogueNode,
   InterrogationDefinition,

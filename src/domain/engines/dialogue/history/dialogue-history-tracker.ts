@@ -1,5 +1,4 @@
 import type { ConversationEntry, ChoiceRecord } from "../types";
-import type { DomainTimestamp } from "@/domain/value-objects/timestamp";
 import { now } from "@/domain/value-objects/timestamp";
 
 export class DialogueHistoryTracker {
@@ -45,10 +44,7 @@ export class DialogueHistoryTracker {
     return history.length > 0 ? (history[history.length - 1] ?? null) : null;
   }
 
-  getChoicesAtNode(
-    conversation: ConversationEntry,
-    nodeId: string,
-  ): ChoiceRecord[] {
+  getChoicesAtNode(conversation: ConversationEntry, nodeId: string): ChoiceRecord[] {
     return conversation.choiceHistory.filter((c) => c.nodeId === nodeId);
   }
 

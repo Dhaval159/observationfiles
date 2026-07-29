@@ -1,33 +1,21 @@
-import { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import type {
   ObservationEntry,
-  ObservationObjectDefinition,
   ObservationGroupDefinition,
   ObservationSearchCriteria,
   ObservationFilterCriteria,
-  ObservationSortOption,
   ObservationLifecycleState,
 } from "@/domain/engines/observation/types";
 import { ObservationEngine } from "@/domain/engines/observation/observation-engine";
 import { useEngineObservationStore } from "@/stores/engine-observation-store";
 
-let engineInstance: ObservationEngine | null = null;
-
 function ensureEngine(): ObservationEngine {
-  if (!engineInstance) {
-    engineInstance = new ObservationEngine();
-  }
-  return engineInstance;
+  return new ObservationEngine();
 }
 
 export function useObservationEngine(): ObservationEngine {
-  const engineRef = useRef<ObservationEngine | null>(null);
-
-  if (!engineRef.current) {
-    engineRef.current = ensureEngine();
-  }
-
-  return engineRef.current;
+  const [engine] = useState(() => ensureEngine());
+  return engine;
 }
 
 export function useObservation(
@@ -40,18 +28,25 @@ export function useObservation(
   error: string | null;
 } {
   const engine = useObservationEngine();
-  const [entry, setEntry] = useState<ObservationEntry | null>(null);
-  const [error, setError] = useState<string | null>(null);
+
+  const initial = engine.getEntry(caseId, observationId, playerId);
+  const [entry, setEntry] = useState<ObservationEntry | null>(
+    initial.success ? initial.data : null,
+  );
+  const [error, setError] = useState<string | null>(initial.success ? null : initial.error.message);
 
   useEffect(() => {
-    const result = engine.getEntry(caseId, observationId, playerId);
-    if (result.success) {
-      setEntry(result.data);
-      setError(null);
-    } else {
-      setEntry(null);
-      setError(result.error.message);
-    }
+    const timer = setTimeout(() => {
+      const result = engine.getEntry(caseId, observationId, playerId);
+      if (result.success) {
+        setEntry(result.data);
+        setError(null);
+      } else {
+        setEntry(null);
+        setError(result.error.message);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [engine, caseId, observationId, playerId]);
 
   return { entry, isLoading: false, error };
@@ -73,35 +68,34 @@ export function useObservations(
   count: number;
 } {
   const engine = useObservationEngine();
+  const { state, category, location, group, tags } = options ?? {};
 
   return useMemo(() => {
     let entries = engine.getAll(caseId, playerId);
 
-    if (options?.state) {
-      entries = engine.getByState(caseId, options.state, playerId);
+    if (state) {
+      entries = engine.getByState(caseId, state, playerId);
     }
-    if (options?.category) {
-      entries = entries.filter((e) => e.definition.category === options.category);
+    if (category) {
+      entries = entries.filter((e) => e.definition.category === category);
     }
-    if (options?.location) {
-      entries = entries.filter((e) => e.definition.locationId === options.location);
+    if (location) {
+      entries = entries.filter((e) => e.definition.locationId === location);
     }
-    if (options?.group) {
-      entries = engine.getByGroup(caseId, options.group, playerId);
+    if (group) {
+      entries = engine.getByGroup(caseId, group, playerId);
     }
-    if (options?.tags && options.tags.length > 0) {
-      entries = entries.filter((e) =>
-        options.tags!.some((t) => e.definition.tags.includes(t)),
-      );
+    if (tags && tags.length > 0) {
+      entries = entries.filter((e) => tags.some((t) => e.definition.tags.includes(t)));
     }
 
     return { entries, isLoading: false, count: entries.length };
-  }, [engine, caseId, playerId, JSON.stringify(options)]);
+  }, [engine, caseId, playerId, state, category, location, group, tags]);
 }
 
 export function useObservationGroups(
-  caseId: string,
-  playerId: string,
+  _caseId: string,
+  _playerId: string,
 ): {
   groups: ObservationGroupDefinition[];
   isLoading: boolean;
@@ -111,7 +105,7 @@ export function useObservationGroups(
   return useMemo(() => {
     const groups = engine.manager.groupManager.getAllGroups();
     return { groups, isLoading: false };
-  }, [engine, caseId, playerId]);
+  }, [engine]);
 }
 
 export function useObservationSearch(
@@ -134,6 +128,7 @@ export function useObservationSearch(
     }, 150);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, caseId, playerId, criteriaKey]);
 
   return {
@@ -158,6 +153,7 @@ export function useObservationFilters(
   return useMemo(() => {
     const filtered = engine.filter(caseId, criteria, playerId);
     return { results: filtered, isLoading: false, count: filtered.length };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, caseId, playerId, criteriaKey]);
 }
 
@@ -253,10 +249,14 @@ export function useObservationProgress(
   return useMemo(() => {
     const all = engine.getAll(caseId, playerId);
     const total = all.length;
-    const observed = all.filter((e) => e.lifecycleState === "observed" || e.lifecycleState === "verified").length;
+    const observed = all.filter(
+      (e) => e.lifecycleState === "observed" || e.lifecycleState === "verified",
+    ).length;
     const verified = all.filter((e) => e.lifecycleState === "verified").length;
     const hidden = all.filter((e) => e.lifecycleState === "hidden").length;
-    const available = all.filter((e) => e.lifecycleState === "available" || e.lifecycleState === "inspecting").length;
+    const available = all.filter(
+      (e) => e.lifecycleState === "available" || e.lifecycleState === "inspecting",
+    ).length;
 
     return {
       total,

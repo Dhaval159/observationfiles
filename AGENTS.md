@@ -48,4 +48,4 @@ pnpm test:run   # Unit tests
 
 ## Environment
 
-Required env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+Optional env vars: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (both needed for Supabase features; app works in offline/demo mode without them)

@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getInvestigationEngine } from "../services/investigation-engine-service";
-import type { ActivityEntry, LogEntry, InvestigationNotification } from "@/domain/engines/investigation/types";
+import type {
+  ActivityEntry,
+  LogEntry,
+  InvestigationNotification,
+} from "@/domain/engines/investigation/types";
 
 export function useInvestigationHistory(playerId: string | null) {
   const [history, setHistory] = useState<ActivityEntry[]>([]);
@@ -23,7 +27,10 @@ export function useInvestigationHistory(playerId: string | null) {
   }, [playerId]);
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   return { history, isLoading, refresh };
@@ -48,7 +55,10 @@ export function useInvestigationLog(playerId: string | null) {
   }, [playerId]);
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   return { log, isLoading, refresh };
@@ -78,7 +88,10 @@ export function useNotifications(playerId: string | null) {
   }, [playerId]);
 
   useEffect(() => {
-    refresh();
+    const timer = setTimeout(() => {
+      refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   return { notifications, unreadCount, isLoading, refresh };
