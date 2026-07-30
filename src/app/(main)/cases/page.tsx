@@ -46,9 +46,71 @@ export default function CasesPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card
+          hover
+          className="border-accent/40 cursor-pointer"
+          onClick={() => (window.location.href = "/cases/case-poisoned-pinot")}
+        >
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <span className="bg-accent-subtle text-accent flex h-8 w-8 items-center justify-center rounded-lg">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+              </span>
+              <h3 className="flex-1 truncate text-sm font-semibold">The Poisoned Pinot</h3>
+              <Badge variant="success">Playable</Badge>
+            </div>
+          </CardHeader>
+          <CardBody>
+            <p className="text-muted line-clamp-2 text-sm">
+              Head Sommelier Julien Croft is found dead next to a broken wine glass in the estate
+              wine cellar. Expose the murderer and their motive.
+            </p>
+            <div className="text-muted mt-3 flex items-center gap-4 text-xs">
+              <span className="flex items-center gap-1">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                15m Est.
+              </span>
+              <span className="flex items-center gap-1">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                Winery / Poison Mystery
+              </span>
+            </div>
+          </CardBody>
+        </Card>
         <PlaceholderCaseCard index={1} />
         <PlaceholderCaseCard index={2} />
-        <PlaceholderCaseCard index={3} />
       </div>
 
       <Divider className="my-8" />

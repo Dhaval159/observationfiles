@@ -11,74 +11,16 @@ import {
   TheoryBoardPanel,
   MapPanel,
   ObjectivePanel,
+  LocationsPanel,
+  SuspectsPanel,
+  WitnessesPanel,
 } from "./panels";
 import { EmptyState } from "@/components/ui/empty-state";
 
 const panelComponents: Record<string, React.ReactNode> = {
-  locations: (
-    <EmptyState
-      icon={
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-          <circle cx="12" cy="10" r="3" />
-        </svg>
-      }
-      title="Locations"
-      description="Crime scene locations and points of interest will appear here."
-    />
-  ),
-  suspects: (
-    <EmptyState
-      icon={
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-        </svg>
-      }
-      title="Suspects"
-      description="Suspect profiles and information will appear here."
-    />
-  ),
-  witnesses: (
-    <EmptyState
-      icon={
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-          <circle cx="8.5" cy="7" r="4" />
-          <polyline points="17 11 19 13 23 9" />
-        </svg>
-      }
-      title="Witnesses"
-      description="Witness statements and profiles will appear here."
-    />
-  ),
+  locations: <LocationsPanel />,
+  suspects: <SuspectsPanel />,
+  witnesses: <WitnessesPanel />,
   "case-files": (
     <EmptyState
       icon={

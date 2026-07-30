@@ -5,17 +5,78 @@ import type {
   ObservationSearchCriteria,
   ObservationFilterCriteria,
   ObservationLifecycleState,
+  ObservationObjectDefinition,
 } from "@/domain/engines/observation/types";
 import { ObservationEngine } from "@/domain/engines/observation/observation-engine";
 import { useEngineObservationStore } from "@/stores/engine-observation-store";
+import { poisonedPinotCase } from "../../cases/data/poisoned-pinot";
+
+let engineInstance: ObservationEngine | null = null;
+const changeListeners = new Set<() => void>();
+
+export function notifyObservationChange() {
+  changeListeners.forEach((l) => l());
+}
 
 function ensureEngine(): ObservationEngine {
-  return new ObservationEngine();
+  if (!engineInstance) {
+    engineInstance = new ObservationEngine();
+
+    // Convert and register Poisoned Pinot observations
+    const caseId = poisonedPinotCase.id;
+    const mappedDefs: ObservationObjectDefinition[] = poisonedPinotCase.observations.map((obs) => {
+      const obj =
+        poisonedPinotCase.observationObjects.find((o) => o.observationIds.includes(obs.id)) ||
+        poisonedPinotCase.observationObjects[0]!;
+
+      return {
+        id: obs.id,
+        caseId: caseId,
+        sourceObjectId: obs.objectId,
+        locationId: obj.locationId,
+        category: obs.category as import("@/domain/enums").ObservationCategory,
+        title: obs.title,
+        description: obs.description,
+        detailedDescription: obs.detailedDescription,
+        visibility: obs.visibility as import("@/domain/enums").ObservationVisibility,
+        requirements: { requirements: [], sets: [], requiredCount: 0, combinator: "all" },
+        dependencyDefs: obs.dependencies.map((dep) => ({
+          id: `${obs.id}_dep_${dep.dependsOn}`,
+          dependsOnId: dep.dependsOn,
+          dependencyType: dep.dependencyType as
+            "requires" | "enhances" | "contradicts" | "supersedes" | "precedes" | "follows",
+          description: dep.description,
+          isBidirectional: false,
+          isMandatory: true,
+        })),
+        confidenceGain: obs.confidenceGain,
+        unlocksObservations: obs.unlocksDeductions,
+        tags: obs.tags,
+        order: obs.order,
+        priority: "normal" as unknown as import("@/domain/value-objects/priority").Priority,
+        difficulty:
+          "medium" as unknown as import("@/domain/value-objects/difficulty").DomainDifficulty,
+        isCritical: obs.isCritical,
+        xpReward: obs.xpReward,
+        maxObservationCount: 1,
+        isHidden: obs.visibility === "hidden",
+        hiddenRequirements: { requirements: [], sets: [], requiredCount: 0, combinator: "all" },
+        interactionPrompt: "Examine",
+        relatedEvidenceIds: [],
+        relatedStatementIds: [],
+        relatedTimelineIds: [],
+        relatedTheoryIds: [],
+        metadata: {},
+      };
+    });
+
+    engineInstance.registerObservations(mappedDefs);
+  }
+  return engineInstance;
 }
 
 export function useObservationEngine(): ObservationEngine {
-  const [engine] = useState(() => ensureEngine());
-  return engine;
+  return useMemo(() => ensureEngine(), []);
 }
 
 export function useObservation(
@@ -28,12 +89,20 @@ export function useObservation(
   error: string | null;
 } {
   const engine = useObservationEngine();
-
   const initial = engine.getEntry(caseId, observationId, playerId);
   const [entry, setEntry] = useState<ObservationEntry | null>(
     initial.success ? initial.data : null,
   );
   const [error, setError] = useState<string | null>(initial.success ? null : initial.error.message);
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setTick((t) => t + 1);
+    changeListeners.add(refresh);
+    return () => {
+      changeListeners.delete(refresh);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -69,8 +138,18 @@ export function useObservations(
 } {
   const engine = useObservationEngine();
   const { state, category, location, group, tags } = options ?? {};
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setTick((t) => t + 1);
+    changeListeners.add(refresh);
+    return () => {
+      changeListeners.delete(refresh);
+    };
+  }, []);
 
   return useMemo(() => {
+    void tick;
     let entries = engine.getAll(caseId, playerId);
 
     if (state) {
@@ -90,7 +169,7 @@ export function useObservations(
     }
 
     return { entries, isLoading: false, count: entries.length };
-  }, [engine, caseId, playerId, state, category, location, group, tags]);
+  }, [engine, caseId, playerId, state, category, location, group, tags, tick]);
 }
 
 export function useObservationGroups(
@@ -218,6 +297,7 @@ export function useObserve(
         const result = engine.observe(caseId, observationId, locationId, playerId);
         if (result.success) {
           setLastObservation(result.data);
+          notifyObservationChange();
         } else {
           setError(result.error.message);
         }
@@ -245,8 +325,18 @@ export function useObservationProgress(
   percentage: number;
 } {
   const engine = useObservationEngine();
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setTick((t) => t + 1);
+    changeListeners.add(refresh);
+    return () => {
+      changeListeners.delete(refresh);
+    };
+  }, []);
 
   return useMemo(() => {
+    void tick;
     const all = engine.getAll(caseId, playerId);
     const total = all.length;
     const observed = all.filter(
@@ -266,5 +356,5 @@ export function useObservationProgress(
       available,
       percentage: total > 0 ? Math.round((observed / total) * 100) : 0,
     };
-  }, [engine, caseId, playerId]);
+  }, [engine, caseId, playerId, tick]);
 }

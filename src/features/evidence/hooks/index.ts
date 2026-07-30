@@ -4,6 +4,7 @@ import type { EventEmitter } from "@/types/engine";
 import type { FullEvidence, EvidenceRelationship } from "@/types/evidence";
 import { EvidenceEngine } from "../services";
 import type { EvidenceEngineState, EvidenceFilters } from "../types";
+import { poisonedPinotCase } from "../../cases/data/poisoned-pinot";
 
 interface EngineStore {
   engine: EvidenceEngine | null;
@@ -75,6 +76,9 @@ function ensureEngine(): EvidenceEngine {
   const emitter = createEventEmitter();
   const engine = new EvidenceEngine(emitter);
 
+  // Load Poisoned Pinot evidence items
+  engine.loadEvidence(poisonedPinotCase.evidenceItems);
+
   const refresh = () => {
     useEvidenceEngineStore.getState().refreshState(engine.getState());
   };
@@ -99,31 +103,35 @@ export function useEvidenceEngine(): EvidenceEngine {
   return engine;
 }
 
-export function useEvidence(evidenceId: string): {
-  evidence: FullEvidence | null;
-} {
+export function useEvidence(evidenceId: string): { evidence: FullEvidence | null } {
   const engine = useEvidenceEngine();
+  const version = useEvidenceEngineStore((s) => s.version);
 
   return useMemo(() => {
+    void version;
     const evidence = engine.getEvidence(evidenceId);
     return { evidence };
-  }, [engine, evidenceId]);
+  }, [engine, evidenceId, version]);
 }
 
 export function useEvidenceList(filters: EvidenceFilters): FullEvidence[] {
   const engine = useEvidenceEngine();
+  const version = useEvidenceEngineStore((s) => s.version);
 
   return useMemo(() => {
+    void version;
     return engine.filterEvidence(filters);
-  }, [engine, filters]);
+  }, [engine, filters, version]);
 }
 
 export function useEvidenceInventory(): FullEvidence[] {
   const engine = useEvidenceEngine();
+  const version = useEvidenceEngineStore((s) => s.version);
 
   return useMemo(() => {
+    void version;
     return engine.getInventory();
-  }, [engine]);
+  }, [engine, version]);
 }
 
 export function useEvidenceProgress(): {
@@ -135,18 +143,22 @@ export function useEvidenceProgress(): {
   analyzed: number;
 } {
   const engine = useEvidenceEngine();
+  const version = useEvidenceEngineStore((s) => s.version);
 
   return useMemo(() => {
+    void version;
     return engine.getEvidenceProgress();
-  }, [engine]);
+  }, [engine, version]);
 }
 
 export function useCollectibleEvidence(context: Record<string, unknown>): FullEvidence[] {
   const engine = useEvidenceEngine();
+  const version = useEvidenceEngineStore((s) => s.version);
 
   return useMemo(() => {
+    void version;
     return engine.getCollectibleEvidence(context);
-  }, [engine, context]);
+  }, [engine, context, version]);
 }
 
 export function useRelatedEvidence(evidenceId: string): {
@@ -155,8 +167,10 @@ export function useRelatedEvidence(evidenceId: string): {
   chain: FullEvidence[];
 } {
   const engine = useEvidenceEngine();
+  const version = useEvidenceEngineStore((s) => s.version);
 
   return useMemo(() => {
+    void version;
     const evidence = engine.getEvidence(evidenceId);
     const relationships = evidence ? engine.getRelatedEvidence(evidenceId) : [];
     const allEvidence = engine.getState().evidence;
@@ -166,7 +180,7 @@ export function useRelatedEvidence(evidenceId: string): {
         : [];
 
     return { evidence, relationships, chain };
-  }, [engine, evidenceId]);
+  }, [engine, evidenceId, version]);
 }
 
 function traverseChain(

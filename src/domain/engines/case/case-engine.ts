@@ -15,6 +15,8 @@ import { InvalidProgressError, EngineError } from "@/domain/errors/domain-error"
 import { CaseLifecycle } from "./lifecycle/case-lifecycle";
 import { CompositeCaseLoader } from "./loader/composite-case-loader";
 import { InMemoryCaseRegistry } from "./registry/case-registry";
+import { JsonCaseLoader } from "./loader/json-case-loader";
+import { RegistryCaseLoader } from "./loader/registry-case-loader";
 import { CaseManager } from "./manager/case-manager";
 import { CaseValidator } from "./validation/case-validator";
 import { UnlockManager } from "./unlock/unlock-manager";
@@ -64,6 +66,8 @@ export class CaseEngine implements ICaseEngine {
     this._lifecycle = new CaseLifecycle();
     this._registry = new InMemoryCaseRegistry();
     this._loader = new CompositeCaseLoader();
+    this._loader.addLoader(new RegistryCaseLoader(this._registry));
+    this._loader.addLoader(new JsonCaseLoader());
     this._validator = new CaseValidator();
     this._unlockManager = new UnlockManager();
     this._objectiveManager = new ObjectiveManager();

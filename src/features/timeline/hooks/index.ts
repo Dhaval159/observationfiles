@@ -4,6 +4,8 @@ import type { FullTimelineEvent, TimelineEventDependency } from "@/types/timelin
 import type { TimelineValidationReport } from "../types";
 import { TimelineEngine } from "../services";
 
+import { poisonedPinotCase } from "../../cases/data/poisoned-pinot";
+
 function createEventEmitter(): EventEmitter {
   const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
   return {
@@ -34,9 +36,29 @@ function createEventEmitter(): EventEmitter {
   };
 }
 
+let emitterInstance: EventEmitter | null = null;
+let engineInstance: TimelineEngine | null = null;
+
+export function getTimelineEmitter(): EventEmitter {
+  if (!emitterInstance) {
+    emitterInstance = createEventEmitter();
+  }
+  return emitterInstance;
+}
+
+export function getTimelineEngine(): TimelineEngine {
+  if (!engineInstance) {
+    const emitter = getTimelineEmitter();
+    engineInstance = new TimelineEngine(emitter);
+
+    // Register Poisoned Pinot timeline events
+    engineInstance.loadEvents(poisonedPinotCase.timelineEvents);
+  }
+  return engineInstance;
+}
+
 export function useTimelineEngine(): TimelineEngine {
-  const [engine] = useState(() => new TimelineEngine(createEventEmitter()));
-  return engine;
+  return useMemo(() => getTimelineEngine(), []);
 }
 
 export function useTimelineEvents(): {
@@ -52,7 +74,7 @@ export function useTimelineEvents(): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTimelineEmitter();
     const unsub1 = emitter.on("event_added", refresh);
     const unsub2 = emitter.on("event_removed", refresh);
     const unsub3 = emitter.on("timeline_changed", refresh);
@@ -83,7 +105,7 @@ export function useTimeline(eventId: string): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTimelineEmitter();
     const unsub1 = emitter.on("event_moved", refresh);
     const unsub2 = emitter.on("event_discovered", refresh);
     const unsub3 = emitter.on("event_analyzed", refresh);
@@ -118,7 +140,7 @@ export function useTimelineConflicts(): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTimelineEmitter();
     const unsub1 = emitter.on("conflicts_detected", refresh);
     const unsub2 = emitter.on("conflict_resolved", refresh);
     const unsub3 = emitter.on("timeline_changed", refresh);
@@ -163,7 +185,7 @@ export function useTimelineProgress(): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTimelineEmitter();
     const unsub1 = emitter.on("event_discovered", refresh);
     const unsub2 = emitter.on("event_time_confirmed", refresh);
     const unsub3 = emitter.on("event_added", refresh);

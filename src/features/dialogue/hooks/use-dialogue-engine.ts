@@ -4,11 +4,15 @@ import { useEngineDialogueStore } from "@/stores/engine-dialogue-store";
 import type { DialogueNode } from "@/domain/engines/i-dialogue-engine";
 import type { NPCStateDefinition } from "@/domain/engines/dialogue/types";
 
+import { poisonedPinotCase } from "../../cases/data/poisoned-pinot";
+
 let engineInstance: DialogueEngine | null = null;
 
 function getEngine(): DialogueEngine {
   if (!engineInstance) {
     engineInstance = new DialogueEngine();
+    // Seed dialogue trees
+    engineInstance.registerTrees(poisonedPinotCase.dialogueTrees);
   }
   return engineInstance;
 }
@@ -17,11 +21,7 @@ export function useDialogueEngine(): DialogueEngine {
   return useMemo(() => getEngine(), []);
 }
 
-export function useConversation(params: {
-  caseId: string;
-  npcId: string;
-  playerId: string;
-}): {
+export function useConversation(params: { caseId: string; npcId: string; playerId: string }): {
   start: () => Promise<void>;
   end: (endState?: "completed" | "failed" | "cancelled") => Promise<void>;
   currentNode: DialogueNode | null;
@@ -59,7 +59,12 @@ export function useConversation(params: {
   const end = useCallback(
     async (endState: "completed" | "failed" | "cancelled" = "completed") => {
       store.setLoading(true);
-      const result = await engine.endDialogue(params.caseId, params.npcId, params.playerId, endState);
+      const result = await engine.endDialogue(
+        params.caseId,
+        params.npcId,
+        params.playerId,
+        endState,
+      );
       if (result.success) {
         store.setActive(false);
         store.setLifecycleState(endState);
@@ -99,12 +104,7 @@ export function useDialogue(): {
       store.setLoading(true);
       store.setError(null);
 
-      const result = await engine.selectChoice(
-        caseId,
-        npc,
-        choiceId,
-        playerId,
-      );
+      const result = await engine.selectChoice(caseId, npc, choiceId, playerId);
 
       if (result.success) {
         store.setCurrentNode(result.data);
@@ -215,10 +215,16 @@ export function useUnlockedTopics(): {
 
 export function useDialogueJournal(): {
   entries: Array<{
-    type: string; title: string; content: string; isImportant: boolean;
+    type: string;
+    title: string;
+    content: string;
+    isImportant: boolean;
   }>;
   important: Array<{
-    type: string; title: string; content: string; isImportant: boolean;
+    type: string;
+    title: string;
+    content: string;
+    isImportant: boolean;
   }>;
 } {
   const entries = useEngineDialogueStore((s) => s.journalEntries);

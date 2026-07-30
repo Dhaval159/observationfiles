@@ -1,9 +1,6 @@
-import { createRequire } from "module";
+import nextConfig from "eslint-config-next";
+import nextTypescriptConfig from "eslint-config-next/typescript";
 import prettierConfig from "eslint-config-prettier";
-
-const require = createRequire(import.meta.url);
-const nextConfig = require("eslint-config-next");
-const nextTypescriptConfig = require("eslint-config-next/typescript");
 
 const config = [
   {

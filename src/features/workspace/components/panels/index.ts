@@ -7,3 +7,6 @@ export { TimelinePanel } from "./timeline-panel";
 export { TheoryBoardPanel } from "./theory-board-panel";
 export { MapPanel } from "./map-panel";
 export { ObjectivePanel } from "./objective-panel";
+export { LocationsPanel } from "./locations-panel";
+export { SuspectsPanel } from "./suspects-panel";
+export { WitnessesPanel } from "./witnesses-panel";

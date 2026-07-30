@@ -8,7 +8,7 @@ import type { ObjectiveState } from "@/domain/engines/case/types";
 export function useObjectives(playerId: string | null) {
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [objectiveStates, setObjectiveStates] = useState<ObjectiveState[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = false;
 
   const refreshObjectives = useCallback(() => {
     if (!playerId) return;

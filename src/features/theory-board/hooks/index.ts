@@ -37,9 +37,26 @@ function createEventEmitter(): EventEmitter {
   };
 }
 
+let emitterInstance: EventEmitter | null = null;
+let engineInstance: TheoryBoardEngine | null = null;
+
+export function getTheoryBoardEmitter(): EventEmitter {
+  if (!emitterInstance) {
+    emitterInstance = createEventEmitter();
+  }
+  return emitterInstance;
+}
+
+export function getTheoryBoardEngine(): TheoryBoardEngine {
+  if (!engineInstance) {
+    const emitter = getTheoryBoardEmitter();
+    engineInstance = new TheoryBoardEngine(emitter);
+  }
+  return engineInstance;
+}
+
 export function useTheoryBoardEngine(): TheoryBoardEngine {
-  const [engine] = useState(() => new TheoryBoardEngine(createEventEmitter()));
-  return engine;
+  return useMemo(() => getTheoryBoardEngine(), []);
 }
 
 export function useTheoryBoard(caseId: string): {
@@ -56,7 +73,7 @@ export function useTheoryBoard(caseId: string): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTheoryBoardEmitter();
     const unsub1 = emitter.on("board_loaded", refresh);
     const unsub2 = emitter.on("board_changed", refresh);
     const unsub3 = emitter.on("board_deserialized", refresh);
@@ -87,7 +104,7 @@ export function useTheoryNode(nodeId: string): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTheoryBoardEmitter();
     const unsub1 = emitter.on("node_updated", refresh);
     const unsub2 = emitter.on("node_moved", refresh);
     const unsub3 = emitter.on("node_pinned", refresh);
@@ -121,7 +138,7 @@ export function useNodeConnections(nodeId: string): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTheoryBoardEmitter();
     const unsub1 = emitter.on("connection_added", refresh);
     const unsub2 = emitter.on("connection_removed", refresh);
     const unsub3 = emitter.on("connection_updated", refresh);
@@ -168,7 +185,7 @@ export function useTheoryBoardProgress(): {
   }, []);
 
   useEffect(() => {
-    const emitter = createEventEmitter();
+    const emitter = getTheoryBoardEmitter();
     const unsub1 = emitter.on("board_changed", refresh);
     const unsub2 = emitter.on("board_loaded", refresh);
     return () => {
